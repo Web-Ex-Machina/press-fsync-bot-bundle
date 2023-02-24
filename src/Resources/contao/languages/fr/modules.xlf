@@ -1,8 +1,43 @@
-<?xml version="1.0" ?>
-<xliff version="1.1">
-	<file datatype="php" original="system/modules/core/languages/en/modules.php" source-language="en" target-language="fr">
-		<body>
+<?xml version="1.0" ?><xliff version="1.1">
+  <file datatype="php" original="src/Resources/contao/languages/en/modules.php" source-language="en" target-language="fr">
+    <body>
+      <trans-unit id="MOD.press_fsync">
+        <source>Press Fsync Bot</source>
+        <target>Press Fsync Bot</target>
+      </trans-unit>
 
-		</body>
-	</file>
+      <trans-unit id="MOD.press_fsync_user_configs.0">
+        <source>Configurations</source>
+        <target>Configurations</target>
+      </trans-unit>
+      <trans-unit id="MOD.press_fsync_user_configs.1">
+        <source>Manage user configurations</source>
+        <target>Gérer les configurations des usagers</target>
+      </trans-unit>
+      <trans-unit id="MOD.press_fsync_discord_events.0">
+        <source>Discord events</source>
+        <target>Événements Discord</target>
+      </trans-unit>
+      <trans-unit id="MOD.press_fsync_discord_events.1">
+        <source>Manage Discord events stored inside the database</source>
+        <target>Gérer les événements Discord répertoriés dans la base de donnée</target>
+      </trans-unit>
+      <trans-unit id="MOD.press_fsync_discord_messages.0">
+        <source>Discord messages</source>
+        <target>Messages Discord</target>
+      </trans-unit>
+      <trans-unit id="MOD.press_fsync_discord_messages.1">
+        <source>Manage Discord messages stored inside the database</source>
+        <target>Gérer les messages Discord répertoriés dans la base de donnée</target>
+      </trans-unit>
+      <trans-unit id="MOD.press_fsync_tasks.0">
+        <source>Tasks</source>
+        <target>Tâches</target>
+      </trans-unit>
+      <trans-unit id="MOD.press_fsync_tasks.1">
+        <source>Manage tasks to execute later</source>
+        <target>Gérer les tâches à executer plus tard</target>
+      </trans-unit>
+    </body>
+  </file>
 </xliff>

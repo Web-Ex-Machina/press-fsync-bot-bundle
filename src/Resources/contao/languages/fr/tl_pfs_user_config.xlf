@@ -1,0 +1,135 @@
+<?xml version="1.0" ?><xliff version="1.1">
+  <file datatype="php" original="src/Resources/contao/languages/en/tl_pfs_user_config.php" source-language="en" target-language="fr">
+    <body>
+      <trans-unit id="tl_pfs_user_config.global_legend">
+        <source>Global settings</source>
+        <target>Paramètres généraux</target>
+      </trans-unit>
+      <trans-unit id="tl_pfs_user_config.twitch_legend">
+        <source>Twitch settings</source>
+        <target>Paramètres Twitch</target>
+      </trans-unit>
+      <trans-unit id="tl_pfs_user_config.youtube_legend">
+        <source>Youtube settings</source>
+        <target>Paramètres Youtube</target>
+      </trans-unit>
+      <trans-unit id="tl_pfs_user_config.syncTwitchScheduleWithDiscordEvents_legend">
+        <source>Sync Twitch schedule with Discord events Settings</source>
+        <target>Gérer les paramètres de synchronisation entre le planning Twitch et les événements Discord</target>
+      </trans-unit>
+      <trans-unit id="tl_pfs_user_config.syncTwitchScheduleWithDiscordMessages_legend">
+        <source>Sync Twitch schedule with Discord messages Settings</source>
+        <target>Gérer les paramètres de synchronisation entre le planning Twitch et les messages Discord</target>
+      </trans-unit>
+      <trans-unit id="tl_pfs_user_config.sendDiscordAlertWhenLiveOnTwitch_legend">
+        <source>Alerts when stream goes live</source>
+        <target>Notification quand un stream est en live</target>
+      </trans-unit>
+
+      <trans-unit id="tl_pfs_user_config.username.0">
+        <source>Username</source>
+        <target>Nom d'utilisateur</target>
+      </trans-unit>
+      <trans-unit id="tl_pfs_user_config.username.1">
+        <source>Enter username</source>
+        <target>Saisir le nom d'utilisateur</target>
+      </trans-unit>
+      <trans-unit id="tl_pfs_user_config.twitchUsername.0">
+        <source>Username</source>
+        <target>Nom d'utilisateur</target>
+      </trans-unit>
+      <trans-unit id="tl_pfs_user_config.twitchUsername.1">
+        <source>Enter Twitch username</source>
+        <target>Saisir le nom d'utilisateur Twitch</target>
+      </trans-unit>
+      <trans-unit id="tl_pfs_user_config.twitchBroadcasterId.0">
+        <source>Broadcaster ID</source>
+        <target>ID du diffuseur</target>
+      </trans-unit>
+      <trans-unit id="tl_pfs_user_config.twitchBroadcasterId.1">
+        <source>Enter broadcaster ID</source>
+        <target>Saisir l'ID du diffuseur</target>
+      </trans-unit>
+      <trans-unit id="tl_pfs_user_config.youtubeChannel.0">
+        <source>Channel identifier</source>
+        <target>Identifiant de chaîne</target>
+      </trans-unit>
+      <trans-unit id="tl_pfs_user_config.youtubeChannel.1">
+        <source>Enter Youtube channel identifier</source>
+        <target>Saisir l'identifiant de chaine Youtube</target>
+      </trans-unit>
+      <trans-unit id="tl_pfs_user_config.syncTwitchScheduleWithDiscordEvents.0">
+        <source>Synchronize Twitch schedule with Discord events</source>
+        <target>Synchroniser le planning Twitch avec les événements Discord</target>
+      </trans-unit>
+      <trans-unit id="tl_pfs_user_config.syncTwitchScheduleWithDiscordEvents.1">
+        <source>Check to activate the synchronization</source>
+        <target>Cocher pour activer la synchronisation</target>
+      </trans-unit>
+      <trans-unit id="tl_pfs_user_config.syncTwitchScheduleWithDiscordEventsServers.0">
+        <source>Discord servers</source>
+        <target>Serveurs Discord</target>
+      </trans-unit>
+      <trans-unit id="tl_pfs_user_config.syncTwitchScheduleWithDiscordEventsServers.1">
+        <source>Enter the Discord servers to synchronization with</source>
+        <target>Saisir les serveurs Discord avec lesquelles synchroniser</target>
+      </trans-unit>
+      <trans-unit id="tl_pfs_user_config.syncTwitchScheduleWithDiscordEventsFallbackPicture.0">
+        <source>Fallback picture</source>
+        <target>Image de remplacement</target>
+      </trans-unit>
+      <trans-unit id="tl_pfs_user_config.syncTwitchScheduleWithDiscordEventsFallbackPicture.1">
+        <source>Select the picture to use if we fail to retrieve the stream picture</source>
+        <target>Sélectionner l'image à utiliser si nous ne pouvons récupérer l'image du stream</target>
+      </trans-unit>
+      <trans-unit id="tl_pfs_user_config.syncTwitchScheduleWithDiscordMessages.0">
+        <source>Synchronize Twitch schedule with Discord messages</source>
+        <target>Synchroniser le planning Twitch avec les messages Discord</target>
+      </trans-unit>
+      <trans-unit id="tl_pfs_user_config.syncTwitchScheduleWithDiscordMessages.1">
+        <source>Check to activate the synchronization</source>
+        <target>Cocher pour activer la synchronisation</target>
+      </trans-unit>
+      <trans-unit id="tl_pfs_user_config.syncTwitchScheduleWithDiscordMessagesFormat.0">
+        <source>Message format</source>
+        <target>Format du message</target>
+      </trans-unit>
+      <trans-unit id="tl_pfs_user_config.syncTwitchScheduleWithDiscordMessagesFormat.1">
+        <source>Enter Discord message format</source>
+        <target>Saisir le format du message Discord</target>
+      </trans-unit>
+      <trans-unit id="tl_pfs_user_config.syncTwitchScheduleWithDiscordMessagesColor.0">
+        <source>Border color</source>
+        <target>Couleur de la bordure</target>
+      </trans-unit>
+      <trans-unit id="tl_pfs_user_config.syncTwitchScheduleWithDiscordMessagesColor.1">
+        <source>Enter the border color of the Discord message</source>
+        <target>Saisir la couleur de la bordure du message Discord</target>
+      </trans-unit>
+      <trans-unit id="tl_pfs_user_config.syncTwitchScheduleWithDiscordMessagesThumbnail.0">
+        <source>Thumbnail</source>
+        <target>Miniature</target>
+      </trans-unit>
+      <trans-unit id="tl_pfs_user_config.syncTwitchScheduleWithDiscordMessagesThumbnail.1">
+        <source>Select the picture to use in the Discord message</source>
+        <target>Sélectionner l'image à utiliser dans le message Discord</target>
+      </trans-unit>
+      <trans-unit id="tl_pfs_user_config.syncTwitchScheduleWithDiscordMessagesRecipients.0">
+        <source>Discord servers</source>
+        <target>Serveurs Discord</target>
+      </trans-unit>
+      <trans-unit id="tl_pfs_user_config.syncTwitchScheduleWithDiscordMessagesRecipients.1">
+        <source>Enter the Discord servers to synchronization with</source>
+        <target>Saisir les serveurs Discord avec lesquelles synchroniser</target>
+      </trans-unit>
+      <trans-unit id="tl_pfs_user_config.sendDiscordAlertWhenLiveOnTwitch.0">
+        <source>Send alert when Twitch stream goes live</source>
+        <target>Envoyer une alerte quand un stream Twitch est en live</target>
+      </trans-unit>
+      <trans-unit id="tl_pfs_user_config.sendDiscordAlertWhenLiveOnTwitch.1">
+        <source>Check to activate the alert</source>
+        <target>Cocher pour activer l'alerte</target>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>
