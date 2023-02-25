@@ -33,6 +33,11 @@ array_insert($GLOBALS['BE_MOD'], 1, [
 ]);
 
 /*
+ * Hooks
+ */
+$GLOBALS['TL_HOOKS']['generatePage'][] = [WEM\PressFsyncBotBundle\Event\GeneratePageListener::class, 'catchApiRequest'];
+
+/*
  * Models
  */
 $GLOBALS['TL_MODELS'][WEM\PressFsyncBotBundle\Model\DiscordMessage::getTable()] = WEM\PressFsyncBotBundle\Model\DiscordMessage::class;

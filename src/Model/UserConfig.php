@@ -15,4 +15,11 @@ class UserConfig extends \WEM\UtilsBundle\Model\Model
      * @var string
      */
     protected static $strTable = 'tl_pfs_user_config';
+
+    public static function findByTwitchSyncSchedulePlanned($options = [])
+    {
+        $t = static::$strTable;
+        $sql = "$t.syncTwitchScheduleWithDiscordEvents = 1 OR $t.syncTwitchScheduleWithDiscordMessages = 1";
+        return static::findBy([$sql], null, $options);
+    }
 }
