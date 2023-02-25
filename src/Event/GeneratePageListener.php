@@ -1,28 +1,34 @@
 <?php
 
+declare(strict_types=1);
+
+/**
+ * Press Fsync Bot Bundle for Contao Open Source CMS
+ * Copyright (c) 2023 Web ex Machina
+ *
+ * @category ContaoBundle
+ * @package  Web-Ex-Machina/press-fsync-bot-bundle
+ * @author   Web ex Machina <contact@webexmachina.fr>
+ * @link     https://github.com/Web-Ex-Machina/press-fsync-bot-bundle/
+ */
+
 namespace WEM\PressFsyncBotBundle\Event;
 
-use Exception;
-
 use Contao\Config;
-use Contao\BackendUser;
-use Contao\Environment;
 use Contao\File;
 use Contao\FilesModel;
 use Contao\Image;
 use Contao\StringUtil;
 use Contao\System;
-
+use Exception;
 use Haste\Input\Input;
-use Haste\Http\Response\JsonResponse;
-
 use WEM\PressFsyncBotBundle\Model\DiscordEvent;
 use WEM\PressFsyncBotBundle\Model\DiscordMessage;
 use WEM\PressFsyncBotBundle\Model\Task;
 use WEM\PressFsyncBotBundle\Model\UserConfig;
 
 /**
- * TODO
+ * TODO.
  *
  * Ajouter à la config :
  * - Fréquence de synchronisation des events
@@ -56,11 +62,11 @@ use WEM\PressFsyncBotBundle\Model\UserConfig;
  */
 class GeneratePageListener extends \Controller
 {
-    protected $strTwitchClientId = null;
-    protected $strTwitchClientSecret = null;
-    protected $strDiscordToken = null;
-    protected $strTwitchToken = null;
-    protected $strTwitchTokenType = null;
+    protected $strTwitchClientId;
+    protected $strTwitchClientSecret;
+    protected $strDiscordToken;
+    protected $strTwitchToken;
+    protected $strTwitchTokenType;
     protected $arrTwitchCache = ['categories' => []];
     protected $arrDiscordCache = ['server_events' => []];
 
@@ -80,12 +86,12 @@ class GeneratePageListener extends \Controller
 
             $arrConfigs[$username] = [
                 'label' => $objConfigs->username,
-                'url' => 'https://www.twitch.tv/' . $username,
+                'url' => 'https://www.twitch.tv/'.$username,
                 'intro' => $objConfigs->syncTwitchScheduleWithDiscordMessagesFormat,
                 'color' => $objConfigs->syncTwitchScheduleWithDiscordMessagesColor,
                 'events_servers' => deserialize($objConfigs->syncTwitchScheduleWithDiscordEventsServers),
                 'events_messages' => deserialize($objConfigs->syncTwitchScheduleWithDiscordMessagesRecipients),
-                'broadcaster_id' => $encryptionService->decrypt($objConfigs->twitchBroadcasterId)
+                'broadcaster_id' => $encryptionService->decrypt($objConfigs->twitchBroadcasterId),
             ];
 
             if ($objConfigs->syncTwitchScheduleWithDiscordEventsFallbackPicture && $objFile = FilesModel::findByUuid($objConfigs->syncTwitchScheduleWithDiscordEventsFallbackPicture)) {
@@ -105,7 +111,7 @@ class GeneratePageListener extends \Controller
         return [];
     }
 
-    public function catchApiRequest($objPage, $objLayout, $objPageRegular)
+    public function catchApiRequest($objPage, $objLayout, $objPageRegular): void
     {
         global $objPage;
 
@@ -114,7 +120,7 @@ class GeneratePageListener extends \Controller
         $this->strTwitchClientSecret = $encryptionService->decrypt(Config::get('pfsTwitchClientSecret'));
         $this->strDiscordToken = $encryptionService->decrypt(Config::get('pfsDiscordToken'));
 
-        if ($objPage->alias != "api") {
+        if ('api' !== $objPage->alias) {
             return;
         }
 
@@ -207,8 +213,8 @@ class GeneratePageListener extends \Controller
 
                                 foreach ($t['events_servers'] as $s) {
                                     $this->addTask(
-                                        "discord",
-                                        "delete_event",
+                                        'discord',
+                                        'delete_event',
                                         sprintf('guilds/%s/scheduled-events/%s', $s, $objDatabaseEvents->discord_event),
                                         [],
                                         'DELETE'
@@ -244,8 +250,8 @@ class GeneratePageListener extends \Controller
                         foreach ($t['events_servers'] as $s) {
                             if (!$objEvent) {
                                 $this->addTask(
-                                    "discord",
-                                    "add_event",
+                                    'discord',
+                                    'add_event',
                                     sprintf('guilds/%s/scheduled-events', $s),
                                     $data,
                                     'POST'
@@ -256,8 +262,8 @@ class GeneratePageListener extends \Controller
                             // Create task if it does exists in Database but it should be updated
                             elseif ($this->shouldEventBeUpdatedOnDiscord($data, $objEvent)) {
                                 $this->addTask(
-                                    "discord",
-                                    "update_event",
+                                    'discord',
+                                    'update_event',
                                     sprintf('guilds/%s/scheduled-events/%s', $s, $objEvent->discord_event),
                                     $data,
                                     'PATCH'
@@ -270,10 +276,10 @@ class GeneratePageListener extends \Controller
                         // Store Twitch events IDs for later
                         $arrTwitchEventsIds[] = $event['id'];
 
-                        $objStartAt = \DateTime::createFromFormat(DATE_ATOM, $event['start_time'], new \DateTimeZone('UTC'));
+                        $objStartAt = \DateTime::createFromFormat(\DATE_ATOM, $event['start_time'], new \DateTimeZone('UTC'));
                         $objStartAt->setTimezone(new \DateTimeZone('Europe/Paris'));
                         // $objEndAt = \DateTime::createFromFormat(DATE_ATOM, $event['end_time']);
-                        $arrEventsForMsg[] = "Le " . $objStartAt->format('d/m/Y à H:i') . " - " . $event['title'];
+                        $arrEventsForMsg[] = 'Le '.$objStartAt->format('d/m/Y à H:i').' - '.$event['title'];
                     }
 
                     // Prepare message
@@ -285,19 +291,19 @@ class GeneratePageListener extends \Controller
                         'url' => $t['url'],
                         'author' => [
                             'name' => $t['label'],
-                            "url" => $t['url'],
+                            'url' => $t['url'],
                         ],
-                        'timestamp' => date("c"),
-                        'color' => hexdec($t['color'] ?: "FFFFFF"),
+                        'timestamp' => date('c'),
+                        'color' => hexdec($t['color'] ?: 'FFFFFF'),
                         'thumbnail' => [
-                            'url' => \Environment::get('base') . $t['avatar']
-                        ]
+                            'url' => \Environment::get('base').$t['avatar'],
+                        ],
                     ];
 
                     // Find events to delete
                     $strSql = 'user = "'.$t['broadcaster_id'].'"';
                     if (!empty($arrTwitchEventsIds)) {
-                        $strSql .= ' AND twitch_event NOT IN("' . implode('","', $arrTwitchEventsIds) . '")';
+                        $strSql .= ' AND twitch_event NOT IN("'.implode('","', $arrTwitchEventsIds).'")';
                     }
 
                     $objDatabaseEvents = DiscordEvent::findBy([$strSql], null);
@@ -309,8 +315,8 @@ class GeneratePageListener extends \Controller
 
                             foreach ($t['events_servers'] as $s) {
                                 $this->addTask(
-                                    "discord",
-                                    "delete_event",
+                                    'discord',
+                                    'delete_event',
                                     sprintf('guilds/%s/scheduled-events/%s', $s, $objDatabaseEvents->discord_event),
                                     [],
                                     'DELETE'
@@ -324,7 +330,7 @@ class GeneratePageListener extends \Controller
                     // Check if there is Discord events to delete because there was an issue before
                     foreach ($t['events_servers'] as $s) {
                         // Litle cache system so we do not repeat unecessary requests
-                        if (!array_key_exists($s, $this->arrDiscordCache['events_servers'])) {
+                        if (!\array_key_exists($s, $this->arrDiscordCache['events_servers'])) {
                             $objDiscordEvents = $this->makeDiscordRequest(
                                 sprintf('guilds/%s/scheduled-events', $s),
                                 [],
@@ -341,8 +347,8 @@ class GeneratePageListener extends \Controller
                                 $objDiscordEvent = DiscordEvent::findOneBy(['discord_event = '.$e['id']], null);
                                 if (!$objDiscordEvent) {
                                     $this->addTask(
-                                        "discord",
-                                        "delete_event",
+                                        'discord',
+                                        'delete_event',
                                         sprintf('guilds/%s/scheduled-events/%s', $s, $e['id']),
                                         [],
                                         'DELETE'
@@ -352,7 +358,6 @@ class GeneratePageListener extends \Controller
                         }
                     }
 
-
                     // If we detect changes between Twitch schedule & Database, add a task to also update the Discord messages
                     if (!empty($t['events_messages'])) {
                         foreach ($t['events_messages'] as $c) {
@@ -361,16 +366,16 @@ class GeneratePageListener extends \Controller
 
                             if ($objMessage && $objMessage->events !== serialize($arrTwitchEventsIds)) {
                                 $this->addTask(
-                                    "discord",
-                                    "update_message",
+                                    'discord',
+                                    'update_message',
                                     sprintf('channels/%s/messages/%s', $c['value'], $objMessage->message),
                                     ['embeds' => $arrEmbeds, 'flags' => 2, 'user' => $t['broadcaster_id'], 'server' => $c['key'], 'events' => $arrTwitchEventsIds],
                                     'PATCH'
                                 );
                             } elseif (!$objMessage || !$objMessage->message) {
                                 $this->addTask(
-                                    "discord",
-                                    "add_message",
+                                    'discord',
+                                    'add_message',
                                     sprintf('channels/%s/messages', $c['value']),
                                     ['embeds' => $arrEmbeds, 'flags' => 2, 'user' => $t['broadcaster_id'], 'server' => $c['key'], 'events' => $arrTwitchEventsIds],
                                     'POST'
@@ -405,7 +410,7 @@ class GeneratePageListener extends \Controller
         return 0 === Task::countBy([sprintf("type='%s' AND task='%s' AND endpoint='%s' AND data=? AND method='%s'", $strType, $strTask, $strEndpoint, $strMethod)], serialize($arrData));
     }
 
-    protected function addTask($strType, $strTask, $strEndpoint, $arrData, $strMethod)
+    protected function addTask($strType, $strTask, $strEndpoint, $arrData, $strMethod): void
     {
         if ($this->shouldTaskBeAdded($strType, $strTask, $strEndpoint, $arrData, $strMethod)) {
             $objTask = new Task();
@@ -422,10 +427,10 @@ class GeneratePageListener extends \Controller
     protected function executeTask($objTask)
     {
         $data = $objTask->data ? deserialize($objTask->data) : [];
-        if (array_key_exists('title', $data)) {
+        if (\array_key_exists('title', $data)) {
             $data['title'] = stripcslashes($data['title']);
         }
-        $method = $objTask->method ?: "GET";
+        $method = $objTask->method ?: 'GET';
         $blnSuccess = true;
 
         switch ($objTask->type) {
@@ -485,7 +490,7 @@ class GeneratePageListener extends \Controller
                             break;
                         }
 
-                        $eventId = explode("/", $objTask->endpoint);
+                        $eventId = explode('/', $objTask->endpoint);
                         $objEvent = DiscordEvent::findOneBy('discord_event', $eventId[3]);
 
                         if ($objEvent) {
@@ -528,7 +533,6 @@ class GeneratePageListener extends \Controller
                     break;
 
                     case 'delete_message':
-
                     break;
                 }
 
@@ -537,19 +541,18 @@ class GeneratePageListener extends \Controller
                 $objResult = $this->makeTwitchRequest($objTask->endpoint, $data, $method);
             break;
             default:
-                throw new Exception("Unkown task type");
+                throw new Exception('Unkown task type');
         }
 
         return $blnSuccess;
     }
 
     /**
-     * Parse a Twitch event in an useful array
+     * Parse a Twitch event in an useful array.
      *
-     * @param  array   $event    Data from Twitch
-     * @param  array   $channel  Twitch channel
-     * @param  integer $width    Picture width wanted
-     * @param  integer $height   Picture height wanted
+     * @param array $event  Data from Twitch
+     * @param int   $width  Picture width wanted
+     * @param int   $height Picture height wanted
      *
      * @return array
      */
@@ -564,8 +567,8 @@ class GeneratePageListener extends \Controller
             'scheduled_end_time' => $event['end_time'],
             'entity_type' => 3,
             'entity_metadata' => [
-                'location' => $event['url']
-            ]
+                'location' => $event['url'],
+            ],
         ];
 
         // Retrieve game picture
@@ -604,7 +607,7 @@ class GeneratePageListener extends \Controller
             $data = [
                 'client_id' => $this->strTwitchClientId,
                 'client_secret' => $this->strTwitchClientSecret,
-                'grant_type' => 'client_credentials'
+                'grant_type' => 'client_credentials',
             ];
 
             $ch = curl_init();
@@ -613,7 +616,7 @@ class GeneratePageListener extends \Controller
             curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
             curl_setopt($ch, CURLOPT_HTTPHEADER, [
-                "Content-Type: application/x-www-form-urlencoded",
+                'Content-Type: application/x-www-form-urlencoded',
             ]);
 
             $request = curl_exec($ch);
@@ -634,7 +637,7 @@ class GeneratePageListener extends \Controller
     protected function makeTwitchRequest($endpoint, $data = [], $method = 'GET')
     {
         $token = $this->getTwitchToken();
-        $url = 'https://api.twitch.tv/' . $endpoint;
+        $url = 'https://api.twitch.tv/'.$endpoint;
 
         $ch = curl_init();
 
@@ -648,7 +651,7 @@ class GeneratePageListener extends \Controller
             break;
             case 'GET':
                 if (!empty($data)) {
-                    $url .= '?' . http_build_query($data);
+                    $url .= '?'.http_build_query($data);
                 }
             break;
             default:
@@ -659,7 +662,7 @@ class GeneratePageListener extends \Controller
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($ch, CURLOPT_HTTPHEADER, [
             sprintf('Authorization: %s %s', $token['token_type'], $token['access_token']),
-            sprintf('Client-Id: %s', $this->strTwitchClientId)
+            sprintf('Client-Id: %s', $this->strTwitchClientId),
         ]);
 
         $request = curl_exec($ch);
@@ -670,25 +673,25 @@ class GeneratePageListener extends \Controller
 
     protected function makeDiscordRequest($endpoint, $data = [], $method = 'GET')
     {
-        # Set endpoint
-        $url = "https://discord.com/api/".$endpoint."";
+        // Set endpoint
+        $url = 'https://discord.com/api/'.$endpoint.'';
 
-        # Initialize new curl request
+        // Initialize new curl request
         $ch = curl_init();
         $f = fopen('request.txt', 'w');
 
-        # Set headers, data etc..
-        curl_setopt_array($ch, array(
-            CURLOPT_URL            => $url,
-            CURLOPT_HEADER         => 1,
-            CURLOPT_HTTPHEADER     => array(
-                'Authorization: Bot ' . $this->strDiscordToken,
-                "Content-Type: application/json",
-                "Accept: application/json"
-            ),
+        // Set headers, data etc..
+        curl_setopt_array($ch, [
+            CURLOPT_URL => $url,
+            CURLOPT_HEADER => 1,
+            CURLOPT_HTTPHEADER => [
+                'Authorization: Bot '.$this->strDiscordToken,
+                'Content-Type: application/json',
+                'Accept: application/json',
+            ],
             CURLOPT_RETURNTRANSFER => 1,
-            CURLOPT_STDERR         => $f,
-        ));
+            CURLOPT_STDERR => $f,
+        ]);
 
         switch ($method) {
             case 'POST':
@@ -702,7 +705,7 @@ class GeneratePageListener extends \Controller
         }
 
         if (!empty($data)) {
-            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data, \JSON_UNESCAPED_SLASHES | \JSON_UNESCAPED_UNICODE));
         }
 
         $request = curl_exec($ch);
@@ -719,7 +722,7 @@ class GeneratePageListener extends \Controller
         array_pop($response);
 
         foreach ($response as $part) {
-            $middle = explode(":", $part, 2);
+            $middle = explode(':', $part, 2);
 
             if (!$middle[0]) {
                 continue;
@@ -737,7 +740,7 @@ class GeneratePageListener extends \Controller
         $response = json_decode($body, true);
 
         // If we hit the API limit, sleep for a while and relaunch the request
-        if (array_key_exists('retry_after', $response)) {
+        if (\array_key_exists('retry_after', $response)) {
             sleep(round($response['retry_after']));
 
             $response = $this->makeDiscordRequest($endpoint, $data, $method);
@@ -765,7 +768,7 @@ class GeneratePageListener extends \Controller
 
         // If background image
         if (!$arrGame['background_image']) {
-            throw new Exception("No picture found for this game");
+            throw new Exception('No picture found for this game');
         }
 
         // Then call curl function to retrieve the picture
