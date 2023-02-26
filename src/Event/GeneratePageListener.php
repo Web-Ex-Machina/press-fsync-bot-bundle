@@ -16,6 +16,8 @@ use Contao\System;
 use Haste\Input\Input;
 use Haste\Http\Response\JsonResponse;
 
+use Inn42\Rawg;
+
 use WEM\PressFsyncBotBundle\Model\DiscordEvent;
 use WEM\PressFsyncBotBundle\Model\DiscordMessage;
 use WEM\PressFsyncBotBundle\Model\Task;
