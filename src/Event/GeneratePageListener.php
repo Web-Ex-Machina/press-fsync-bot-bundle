@@ -21,6 +21,7 @@ use Inn42\Rawg;
 use WEM\PressFsyncBotBundle\Model\DiscordEvent;
 use WEM\PressFsyncBotBundle\Model\DiscordMessage;
 use WEM\PressFsyncBotBundle\Model\Task;
+use WEM\PressFsyncBotBundle\Model\TwitchEvent;
 use WEM\PressFsyncBotBundle\Model\UserConfig;
 
 /**
@@ -246,6 +247,9 @@ class GeneratePageListener extends \Controller
                             continue;
                         }
 
+                        // Sync the event in the database
+                        $objEvent = $this->syncTwitchEvent($event, $t);
+
                         // Retrieve the event
                         $objEvent = DiscordEvent::findOneBy(['twitch_event="'.$event['id'].'"'], null);
                         $data = $event;
@@ -396,6 +400,39 @@ class GeneratePageListener extends \Controller
                     }
                 }
             break;
+        }
+    }
+
+    /**
+     * Sync a Twitch event in the Database
+     * @param  array $event Twitch event from API
+     * @param  array $t     User config from database
+     * @return TwitchEvent
+     */
+    protected function syncTwitchEvent($event, $t)
+    {
+        try {
+            $objEvent = TwitchEvent::findOneBy(['twitch_event="'.$event['id'].'"'], null);
+
+            if (!$objEvent) {
+                $objEvent = new TwitchEvent();
+                $objEvent->tstamp = time();
+                $objEvent->twitch_event = $event['id'];
+                $objEvent->user = $t['broadcaster_id'];
+            }
+
+            $objEvent->start_time = $event['start_time'];
+            $objEvent->end_time = $event['end_time'];
+            $objEvent->title = $event['title'];
+            $objEvent->is_recurring = $event['is_recurring'] ? 1 : '';
+            $objEvent->canceled_until = $event['canceled_until'];
+            $objEvent->category_id = $event['category']['id'];
+            $objEvent->category_name = $event['category']['name'];
+            $objEvent->save();
+
+            return $objEvent;
+        } catch (\Exception $e) {
+            throw $e;
         }
     }
 
