@@ -73,6 +73,9 @@ $GLOBALS['TL_DCA']['tl_pfs_discord_event'] = [
             'inputType' => 'text',
             'sql' => 'int(10) unsigned NOT NULL auto_increment',
         ],
+        'tstamp' => [
+            'sql' => "int(10) unsigned NOT NULL default '0'",
+        ],
         'user' => [
             'search' => true,
             'inputType' => 'text',

@@ -67,6 +67,9 @@ $GLOBALS['TL_DCA']['tl_pfs_task'] = [
         'id' => [
             'sql' => 'int(10) unsigned NOT NULL auto_increment',
         ],
+        'tstamp' => [
+            'sql' => "int(10) unsigned NOT NULL default '0'",
+        ],
         'created_at' => [
             'inputType' => 'text',
             'sql' => 'double(13,3) unsigned',
