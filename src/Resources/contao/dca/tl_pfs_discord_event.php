@@ -87,31 +87,10 @@ $GLOBALS['TL_DCA']['tl_pfs_discord_event'] = [
             'sql' => 'text NULL',
         ],
         'twitch_event' => [
-            'search' => true,
-            'inputType' => 'text',
-            'sql' => 'text NULL',
-        ],
-        'start_time' => [
-            'inputType' => 'text',
-            'sql' => 'text NULL',
-        ],
-        'end_time' => [
-            'inputType' => 'text',
-            'sql' => 'text NULL',
-        ],
-        'title' => [
-            'search' => true,
-            'inputType' => 'text',
-            'sql' => 'text NULL',
-        ],
-        'category_id' => [
-            'inputType' => 'text',
-            'sql' => 'int(10) unsigned NOT NULL default 0',
-        ],
-        'category_name' => [
-            'search' => true,
-            'inputType' => 'text',
-            'sql' => 'text NULL',
+            'inputType' => 'select',
+            'foreignKey' => 'tl_pfs_twitch_event.title',
+            'sql' => "int(10) unsigned NOT NULL default '0'",
+            'relation' => ['type' => 'belongsTo', 'load' => 'eager'],
         ],
     ],
 ];
