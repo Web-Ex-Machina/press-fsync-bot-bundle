@@ -111,11 +111,6 @@ class GeneratePageListener extends \Controller
     {
         global $objPage;
 
-        $encryptionService = System::getContainer()->get('plenta.encryption');
-        $this->strTwitchClientId = $encryptionService->decrypt(Config::get('pfsTwitchClientId'));
-        $this->strTwitchClientSecret = $encryptionService->decrypt(Config::get('pfsTwitchClientSecret'));
-        $this->strDiscordToken = $encryptionService->decrypt(Config::get('pfsDiscordToken'));
-
         if ($objPage->alias != "api") {
             return;
         }
@@ -123,6 +118,11 @@ class GeneratePageListener extends \Controller
         if (!Input::get('auto_item')) {
             return;
         }
+
+        $encryptionService = System::getContainer()->get('plenta.encryption');
+        $this->strTwitchClientId = $encryptionService->decrypt(Config::get('pfsTwitchClientId'));
+        $this->strTwitchClientSecret = $encryptionService->decrypt(Config::get('pfsTwitchClientSecret'));
+        $this->strDiscordToken = $encryptionService->decrypt(Config::get('pfsDiscordToken'));
 
         $arrTwitchChannels = $this->getTwitchChannels();
         $arrYtChannels = $this->getYtChannels();
