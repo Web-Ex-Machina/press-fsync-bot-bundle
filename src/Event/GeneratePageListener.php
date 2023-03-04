@@ -191,7 +191,14 @@ class GeneratePageListener extends \Controller
 
                 foreach ($arrTwitchChannels as $t) {
                     // First, get the next events from the Twitch schedule
-                    $r = $this->makeTwitchRequest('helix/schedule', ['broadcaster_id' => $t['broadcaster_id'], 'start_time' => date('Y-m-d\TH:i:sP'), 'first' => 3, 'utc_offset' => 60]);
+                    $r = $this->makeTwitchRequest(
+                        'helix/schedule',
+                        [
+                            'broadcaster_id' => $t['broadcaster_id'],
+                            'start_time' => date('Y-m-d\TH:i:sP'),
+                            'utc_offset' => 60
+                        ]
+                    );
 
                     $arrTwitchEventsIds = [];
                     $hasChanges = false;
@@ -227,6 +234,14 @@ class GeneratePageListener extends \Controller
                     // Loop on the events
                     $arrEventsForMsg = [];
                     foreach ($r['data']['segments'] as $event) {
+                        $objStartAt = \DateTime::createFromFormat(DATE_ATOM, $event['start_time'], new \DateTimeZone('UTC'));
+                        $objStartAt->setTimezone(new \DateTimeZone('Europe/Paris'));
+
+                        // Skip if event is in one month or after
+                        if ($objStartAt->getTimestamp() >= strtotime("+1 month")) {
+                            continue;
+                        }
+
                         if (null !== $event['canceled_until']) {
                             continue;
                         }
@@ -272,11 +287,10 @@ class GeneratePageListener extends \Controller
                         // Store Twitch events IDs for later
                         $arrTwitchEventsIds[] = $event['id'];
 
-                        $objStartAt = \DateTime::createFromFormat(DATE_ATOM, $event['start_time'], new \DateTimeZone('UTC'));
-                        $objStartAt->setTimezone(new \DateTimeZone('Europe/Paris'));
                         // $objEndAt = \DateTime::createFromFormat(DATE_ATOM, $event['end_time']);
                         $arrEventsForMsg[] = "Le " . $objStartAt->format('d/m/Y à H:i') . " - " . $event['title'];
                     }
+
 
                     // Prepare message
                     $arrEmbeds = [];
