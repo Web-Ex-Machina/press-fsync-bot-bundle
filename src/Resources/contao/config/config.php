@@ -20,6 +20,9 @@ array_insert($GLOBALS['BE_MOD'], 1, [
         'press_fsync_user_configs' => [
             'tables' => ['tl_pfs_user_config'],
         ],
+        'press_fsync_twitch_events' => [
+            'tables' => ['tl_pfs_twitch_event'],
+        ],
         'press_fsync_discord_events' => [
             'tables' => ['tl_pfs_discord_event'],
         ],
@@ -43,4 +46,5 @@ $GLOBALS['TL_HOOKS']['generatePage'][] = [WEM\PressFsyncBotBundle\Event\Generate
 $GLOBALS['TL_MODELS'][WEM\PressFsyncBotBundle\Model\DiscordMessage::getTable()] = WEM\PressFsyncBotBundle\Model\DiscordMessage::class;
 $GLOBALS['TL_MODELS'][WEM\PressFsyncBotBundle\Model\DiscordEvent::getTable()] = WEM\PressFsyncBotBundle\Model\DiscordEvent::class;
 $GLOBALS['TL_MODELS'][WEM\PressFsyncBotBundle\Model\Task::getTable()] = WEM\PressFsyncBotBundle\Model\Task::class;
+$GLOBALS['TL_MODELS'][WEM\PressFsyncBotBundle\Model\TwitchEvent::getTable()] = WEM\PressFsyncBotBundle\Model\TwitchEvent::class;
 $GLOBALS['TL_MODELS'][WEM\PressFsyncBotBundle\Model\UserConfig::getTable()] = WEM\PressFsyncBotBundle\Model\UserConfig::class;
