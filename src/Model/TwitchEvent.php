@@ -15,4 +15,11 @@ class TwitchEvent extends \WEM\UtilsBundle\Model\Model
      * @var string
      */
     protected static $strTable = 'tl_pfs_twitch_event';
+
+    /**
+     * Default order column
+     *
+     * @var string
+     */
+    protected static $strOrderColumn = "start_time ASC";
 }

@@ -16,6 +16,13 @@ class UserConfig extends \WEM\UtilsBundle\Model\Model
      */
     protected static $strTable = 'tl_pfs_user_config';
 
+    /**
+     * Default order column
+     *
+     * @var string
+     */
+    protected static $strOrderColumn = "username ASC";
+
     public static function findByTwitchSyncSchedulePlanned($options = [])
     {
         $t = static::$strTable;
