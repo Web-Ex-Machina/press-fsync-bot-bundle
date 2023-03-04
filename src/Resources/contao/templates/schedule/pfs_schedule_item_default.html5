@@ -15,6 +15,7 @@
 
 			<div class="event__text">
 				<div class="event__title h4" itemprop="name"><?= $this->title ?></div>
+				<img width="100" src="<?= $this->avatar ?>" alt="" />
 				<p><?= $this->category_name ?></p>
 				<p><?= $this->start_time ?></p>
 				<p><?= $this->duration ?></p>

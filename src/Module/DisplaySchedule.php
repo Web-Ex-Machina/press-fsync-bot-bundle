@@ -268,9 +268,9 @@ class DisplaySchedule extends Module
             $encryptionService->decrypt($objConfig->twitchUsername)
         );
 
-        // Retrieve and parse the picture
-        if ($objItem->picture && $objFile = \FilesModel::findByUuid($objItem->picture)) {
-            $objTemplate->picture = \Image::get($objFile->path, 300, 300);
+        // Retrieve and parse the syncTwitchScheduleWithDiscordMessagesThumbnail
+        if ($objConfig->syncTwitchScheduleWithDiscordMessagesThumbnail && $objFile = \FilesModel::findByUuid($objConfig->syncTwitchScheduleWithDiscordMessagesThumbnail)) {
+            $objTemplate->avatar = $objFile->path;
         }
 
         return $objTemplate->parse();
