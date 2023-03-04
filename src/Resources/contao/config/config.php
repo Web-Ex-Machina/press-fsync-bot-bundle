@@ -35,6 +35,15 @@ array_insert($GLOBALS['BE_MOD'], 1, [
     ],
 ]);
 
+/**
+ * Frontend modules
+ */
+array_insert($GLOBALS['FE_MOD'], 2, [
+    'press_fsync' => [
+        'press_fsync_display_schedule' => WEM\PressFsyncBotBundle\Module\DisplaySchedule::class,
+    ],
+]);
+
 /*
  * Hooks
  */
