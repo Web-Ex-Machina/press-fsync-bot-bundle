@@ -248,22 +248,16 @@ class GeneratePageListener extends \Controller
                         }
 
                         // Sync the event in the database
-                        $objEvent = $this->syncTwitchEvent($event, $t);
+                        $objTwitchEvent = $this->syncTwitchEvent($event, $t);
 
                         // Retrieve the event
-                        $objEvent = DiscordEvent::findOneBy(['twitch_event="'.$event['id'].'"'], null);
-                        $data = $event;
-                        $data['title'] = addslashes($event['title']);
-                        $data['url'] = $t['url'];
-                        $data['user'] = $t['broadcaster_id'];
-
-                        if ($t['default_picture']) {
-                            $data['image'] = $t['default_picture'];
-                        }
+                        $objDiscordEvent = DiscordEvent::findOneBy(['twitch_event="'.$objTwitchEvent->id.'"'], null);
+                        $data['event'] = $objTwitchEvent->id;
+                        $data['config'] = $t;
 
                         // Create task if it does not exists in Database
                         foreach ($t['events_servers'] as $s) {
-                            if (!$objEvent) {
+                            if (!$objDiscordEvent) {
                                 $this->addTask(
                                     "discord",
                                     "add_event",
@@ -275,11 +269,11 @@ class GeneratePageListener extends \Controller
                                 $hasChanges = true;
                             }
                             // Create task if it does exists in Database but it should be updated
-                            elseif ($this->shouldEventBeUpdatedOnDiscord($data, $objEvent)) {
+                            elseif ($this->shouldEventBeUpdatedOnDiscord($data, $objDiscordEvent)) {
                                 $this->addTask(
                                     "discord",
                                     "update_event",
-                                    sprintf('guilds/%s/scheduled-events/%s', $s, $objEvent->discord_event),
+                                    sprintf('guilds/%s/scheduled-events/%s', $s, $objDiscordEvent->discord_event),
                                     $data,
                                     'PATCH'
                                 );
@@ -486,6 +480,19 @@ class GeneratePageListener extends \Controller
                 switch ($objTask->task) {
                     case 'add_event':
                     case 'update_event':
+                        $objEvent = TwitchEvent::findByPk($data['event']);
+
+                        $data['title'] = addslashes($objEvent->title);
+                        $data['url'] = $data['config']['url'];
+                        $data['user'] = $data['config']['broadcaster_id'];
+
+                        if ($data['config']['default_picture']) {
+                            $data['image'] = $data['config']['default_picture'];
+                        }
+
+                        unset($data['event']);
+                        unset($data['config']);
+
                         $objResult = $this->makeDiscordRequest(
                             $objTask->endpoint,
                             $this->parseTwitchEvent($data),
