@@ -236,11 +236,8 @@ class GeneratePageListener extends \Controller
                     // Loop on the events
                     $arrEventsForMsg = [];
                     foreach ($r['data']['segments'] as $event) {
-                        $objStartAt = \DateTime::createFromFormat(DATE_ATOM, $event['start_time'], new \DateTimeZone('UTC'));
-                        $objStartAt->setTimezone(new \DateTimeZone('Europe/Paris'));
-
                         // Skip if event is in one month or after
-                        if ($objStartAt->getTimestamp() >= strtotime("+1 month")) {
+                        if ($this->getTimestampFromTwitchDate($event['start_time']) >= strtotime("+1 month")) {
                             continue;
                         }
 
@@ -416,11 +413,11 @@ class GeneratePageListener extends \Controller
             $objEvent->tstamp = time();
             $objEvent->twitch_event = $event['id'];
             $objEvent->user = $t['id'];
-            $objEvent->start_time = $event['start_time'];
-            $objEvent->end_time = $event['end_time'];
+            $objEvent->start_time = $this->getTimestampFromTwitchDate($event['start_time']);
+            $objEvent->end_time = $this->getTimestampFromTwitchDate($event['end_time']);
             $objEvent->title = $event['title'];
             $objEvent->is_recurring = $event['is_recurring'] ? 1 : '';
-            $objEvent->canceled_until = $event['canceled_until'];
+            $objEvent->canceled_until = $this->getTimestampFromTwitchDate($event['canceled_until']);
             $objEvent->category_id = $event['category']['id'];
             $objEvent->category_name = $event['category']['name'];
             $objEvent->save();
@@ -841,5 +838,21 @@ class GeneratePageListener extends \Controller
         $objFile->close();
 
         return $objFile;
+    }
+
+    /**
+     * Convert a DATE_ATOM format into a timestamp at the right timezone
+     * @param  string $date
+     * @return int
+     */
+    protected function getTimestampFromTwitchDate($date)
+    {
+        if (!$date) {
+            return null;
+        }
+
+        $objDate = \DateTime::createFromFormat(DATE_ATOM, $date, new \DateTimeZone('UTC'));
+        $objDate->setTimezone(new \DateTimeZone('Europe/Paris'));
+        return $objDate->getTimestamp();
     }
 }
