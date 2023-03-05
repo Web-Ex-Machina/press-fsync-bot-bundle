@@ -94,7 +94,7 @@ class GeneratePageListener extends \Controller
         $arrConfig = [
             'id' => $objConfig->id,
             'label' => $objConfig->username,
-            'url' => 'https://www.twitch.tv/' . $username,
+            'url' => 'https://www.twitch.tv/' . $encryptionService->decrypt($objConfig->twitchUsername),
             'intro' => $objConfig->syncTwitchScheduleWithDiscordMessagesFormat,
             'color' => $objConfig->syncTwitchScheduleWithDiscordMessagesColor,
             'events_servers' => deserialize($objConfig->syncTwitchScheduleWithDiscordEventsServers),
@@ -523,9 +523,12 @@ class GeneratePageListener extends \Controller
                     case 'update_event':
                         $objEvent = TwitchEvent::findByPk($data['event']);
 
-                        $data['title'] = addslashes($objEvent->title);
+                        $data['title'] = $objEvent->title;
                         $data['url'] = $data['config']['url'];
                         $data['user'] = $data['config']['broadcaster_id'];
+                        $data['start_time'] = date('c', $objEvent->start_time);
+                        $data['end_time'] = date('c', $objEvent->end_time);
+                        $data['category']['name'] = $objEvent->category_name;
 
                         if ($data['config']['default_picture']) {
                             $data['image'] = $data['config']['default_picture'];
