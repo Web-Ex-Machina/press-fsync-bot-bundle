@@ -456,16 +456,31 @@ class GeneratePageListener extends \Controller
         }
     }
 
-    protected function shouldEventBeUpdatedOnDiscord($event, $objEvent)
+    protected function shouldEventBeUpdatedOnDiscord($event, $objDiscordEvent)
     {
+        $objTwitchEvent = TwitchEvent::findByPk($event['event']);
+
         // If the title has changed, go
-        $title = $event['title'] ?: $event['category']['name'];
-        if (stripcslashes($title) !== $objEvent->title) {
+        $title = $objTwitchEvent->title ?: $objTwitchEvent->category_name;
+        if ($objTwitchEvent->title !== $objDiscordEvent->discord_event_name) {
             return true;
         }
 
-        // If the date has changed, go
-        if ($event['start_time'] !== $objEvent->start_time) {
+        if (date('c', $objTwitchEvent->start_time) !== $objDiscordEvent->discord_event_scheduled_start_time) {
+            return true;
+        }
+
+        if (date('c', $objTwitchEvent->end_time) !== $objDiscordEvent->discord_event_scheduled_end_time) {
+            return true;
+        }
+
+        // retrieve config and format url
+        $arrConfig = $this->parseConfig($objTwitchEvent->getRelated('user'));
+        if ($arrConfig['url'] !== $objDiscordEvent->discord_event_entity_metadata_location) {
+            return true;
+        }
+
+        if ($objTwitchEvent->category_name !== $objDiscordEvent->discord_event_category_name) {
             return true;
         }
 
@@ -538,9 +553,11 @@ class GeneratePageListener extends \Controller
                         unset($data['event']);
                         unset($data['config']);
 
+                        $data = $this->parseTwitchEvent($data);
+
                         $objResult = $this->makeDiscordRequest(
                             $objTask->endpoint,
-                            $this->parseTwitchEvent($data),
+                            $data,
                             $method
                         );
 
@@ -565,6 +582,11 @@ class GeneratePageListener extends \Controller
                         $objDiscordEvent->discord_event = $objResult['id'];
                         $objDiscordEvent->twitch_event = $objEvent->id;
                         $objDiscordEvent->user = $intConfig;
+                        $objDiscordEvent->discord_event_name = $data['name'];
+                        $objDiscordEvent->discord_event_scheduled_start_time = $data['scheduled_start_time'];
+                        $objDiscordEvent->discord_event_scheduled_end_time = $data['scheduled_end_time'];
+                        $objDiscordEvent->discord_event_entity_metadata_location = $data['entity_metadata']['location'];
+                        $objDiscordEvent->discord_event_category_name = $objEvent->category_name ?: '';
                         $objDiscordEvent->save();
                     break;
 

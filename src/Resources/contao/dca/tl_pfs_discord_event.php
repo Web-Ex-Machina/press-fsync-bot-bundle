@@ -63,7 +63,7 @@ $GLOBALS['TL_DCA']['tl_pfs_discord_event'] = [
     // Palettes
     'palettes' => [
         'default' => '
-            {global_legend},user,discord_event,twitch_event
+            {global_legend},user,twitch_event,discord_event
         ',
     ],
 
@@ -82,16 +82,41 @@ $GLOBALS['TL_DCA']['tl_pfs_discord_event'] = [
             'sql' => "int(10) unsigned NOT NULL default '0'",
             'relation' => ['type' => 'belongsTo', 'load' => 'lazy'],
         ],
-        'discord_event' => [
-            'search' => true,
-            'inputType' => 'text',
-            'sql' => 'text NULL',
-        ],
         'twitch_event' => [
             'inputType' => 'select',
             'foreignKey' => 'tl_pfs_twitch_event.title',
             'sql' => "int(10) unsigned NOT NULL default '0'",
             'relation' => ['type' => 'belongsTo', 'load' => 'lazy'],
+        ],
+        'discord_event' => [
+            'search' => true,
+            'inputType' => 'text',
+            'sql' => 'text NULL',
+        ],
+        'discord_event_name' => [
+            'search' => true,
+            'inputType' => 'text',
+            'sql' => 'text NULL',
+        ],
+        'discord_event_scheduled_start_time' => [
+            'search' => true,
+            'inputType' => 'text',
+            'sql' => 'text NULL',
+        ],
+        'discord_event_scheduled_end_time' => [
+            'search' => true,
+            'inputType' => 'text',
+            'sql' => 'text NULL',
+        ],
+        'discord_event_entity_metadata_location' => [
+            'search' => true,
+            'inputType' => 'text',
+            'sql' => 'text NULL',
+        ],
+        'discord_event_category_name' => [
+            'search' => true,
+            'inputType' => 'text',
+            'sql' => 'text NULL',
         ],
     ],
 ];
