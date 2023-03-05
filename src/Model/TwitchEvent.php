@@ -47,6 +47,14 @@ class TwitchEvent extends \WEM\UtilsBundle\Model\Model
                     $arrColumns[] = sprintf("$t.user IN(%s)", implode(",", $varValue));
                 break;
 
+                case 'start_time_after':
+                    $arrColumns[] = sprintf("$t.start_time >= %s", $varValue);
+                break;
+
+                case 'start_time_before':
+                    $arrColumns[] = sprintf("$t.start_time <= %s", $varValue);
+                break;
+
                 case 'search':
                     $strKeywords = implode('|', $varValue);
                     $arrColumns[] = "($t.title REGEXP '$strKeywords' OR $t.category_name REGEXP '$strKeywords')";

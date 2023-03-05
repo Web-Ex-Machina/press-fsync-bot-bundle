@@ -215,7 +215,7 @@ class DisplaySchedule extends Module
             'type' => "select",
             'name' => "category",
             'label' => $GLOBALS['TL_LANG']['PFS']['SCHEDULE']['FILTERS']['category'],
-            'placeholder' => $GGLOBALS['TL_LANG']['PFS']['SCHEDULE']['FILTERS']['categoryPlaceholder'],
+            'placeholder' => $GLOBALS['TL_LANG']['PFS']['SCHEDULE']['FILTERS']['categoryPlaceholder'],
             'value' => Input::get('category') ?: '',
             'options' => $arrOptions
         ];
@@ -225,9 +225,38 @@ class DisplaySchedule extends Module
         }
 
         // Start date filter
+        $this->filters[] = [
+            'type' => "datepicker",
+            'name' => "start_time_after",
+            'label' => $GLOBALS['TL_LANG']['PFS']['SCHEDULE']['FILTERS']['start_time_after'],
+            'placeholder' => $GLOBALS['TL_LANG']['PFS']['SCHEDULE']['FILTERS']['start_time_afterPlaceholder'],
+            'value' => Input::get('start_time_after') ?: '',
+            "formatdate" => Config::get('dateFormat'),
+            "mindate" => date(Config::get('dateFormat'), time()),
+            "maxdate" => date(Config::get('dateFormat'), strtotime("+1 month")),
+        ];
 
+        if ('' !== Input::get('start_time_after') && null !== Input::get('start_time_after')) {
+            $objDate = \DateTime::createFromFormat(Config::get('dateFormat'), Input::get('start_time_after'));
+            $objDate->setTime(0, 0, 0, 0);
+            $this->config['start_time_after'] = $objDate->getTimestamp();
+        }
 
         // Stop date filter
+        $this->filters[] = [
+            'type' => "datepicker",
+            'name' => "start_time_before",
+            'label' => $GLOBALS['TL_LANG']['PFS']['SCHEDULE']['FILTERS']['start_time_before'],
+            'placeholder' => $GLOBALS['TL_LANG']['PFS']['SCHEDULE']['FILTERS']['start_time_beforePlaceholder'],
+            'value' => Input::get('start_time_before') ?: '',
+            "formatdate" => Config::get('dateFormat'),
+            "mindate" => date(Config::get('dateFormat'), time()),
+            "maxdate" => date(Config::get('dateFormat'), strtotime("+1 month")),
+        ];
+
+        if ('' !== Input::get('start_time_before') && null !== Input::get('start_time_before')) {
+            $this->config['start_time_before'] = Input::get('start_time_before');
+        }
     }
 
     /**
@@ -282,12 +311,10 @@ class DisplaySchedule extends Module
         $objTemplate->count = $intCount; // see #5708
 
         // Parse event date
-        $objStartAt = \DateTime::createFromFormat(DATE_ATOM, $objItem->start_time, new \DateTimeZone('UTC'));
-        $objStartAt->setTimezone(new \DateTimeZone('Europe/Paris'));
-        $objTemplate->start_time = date(Config::get('datimFormat'), (int) $objStartAt->getTimestamp());
+        $objStartAt = new \DateTime('@' . $objItem->start_time);
+        $objTemplate->start_time = date(Config::get('datimFormat'), (int) $objItem->start_time);
 
-        $objEndAt = \DateTime::createFromFormat(DATE_ATOM, $objItem->end_time, new \DateTimeZone('UTC'));
-        $objEndAt->setTimezone(new \DateTimeZone('Europe/Paris'));
+        $objEndAt = new \DateTime('@' . $objItem->end_time);
 
         $objDuration = $objStartAt->diff($objEndAt);
         // @todo : handle event with duration less than one hour and more than 24 hours
