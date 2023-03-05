@@ -194,13 +194,40 @@ class DisplaySchedule extends Module
             $this->config['users'] = Input::get('users');
         }
 
+        // Category filter
+        $arrOptions = [];
+        $objOptions = TwitchEvent::findItemsGroupByOneField('category_name');
+        if ($objOptions) {
+            while ($objOptions->next()) {
+                if (!$objOptions->category_name) {
+                    continue;
+                }
+
+                $arrOptions[] = [
+                    'value' => $objOptions->category_name,
+                    'label' => $objOptions->category_name,
+                    'selected' => Input::get('category') === $objOptions->category_name,
+                ];
+            }
+        }
+
+        $this->filters[] = [
+            'type' => "select",
+            'name' => "category",
+            'label' => $GLOBALS['TL_LANG']['PFS']['SCHEDULE']['FILTERS']['category'],
+            'placeholder' => $GGLOBALS['TL_LANG']['PFS']['SCHEDULE']['FILTERS']['categoryPlaceholder'],
+            'value' => Input::get('category') ?: '',
+            'options' => $arrOptions
+        ];
+
+        if ('' !== Input::get('category') && null !== Input::get('category')) {
+            $this->config['category_name'] = Input::get('category');
+        }
+
         // Start date filter
 
 
         // Stop date filter
-
-
-        // Category filter
     }
 
     /**
