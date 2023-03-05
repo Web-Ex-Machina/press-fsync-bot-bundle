@@ -18,6 +18,10 @@
 									<?php endforeach; ?>
 								</select>
 								</div>
+							<?php elseif ('datepicker' == $f['type']): ?>
+								<div class="form-group">
+								<input class="filter datepicker" type="text" name="<?= $f['name']; ?>" value="<?= $f['value']; ?>" placeholder="<?= ($f['placeholder'] ?: $f['label']) ?>" data-timepicker="false" data-datepicker="true" data-formatdate="<?= $f['formatdate']; ?>" data-mindate="<?= $f['mindate']; ?>" data-maxdate="<?= $f['maxdate']; ?>"  data-reset="true" />
+								</div>
 							<?php else: ?>
 								<div class="form-group <?= $f['name']=='search' ? 'form-shrink input-group' : '' ?>">
 									<input class="filter" type="text" name="<?= $f['name']; ?>" value="<?= $f['value']; ?>" placeholder="<?= ($f['placeholder'] ?: $f['label']) ?>" />
