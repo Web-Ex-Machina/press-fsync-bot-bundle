@@ -522,6 +522,7 @@ class GeneratePageListener extends \Controller
                     case 'add_event':
                     case 'update_event':
                         $objEvent = TwitchEvent::findByPk($data['event']);
+                        $intConfig = $data['config']['id'];
 
                         $data['title'] = $objEvent->title;
                         $data['url'] = $data['config']['url'];
@@ -554,22 +555,17 @@ class GeneratePageListener extends \Controller
                             break;
                         }
 
-                        $objEvent = DiscordEvent::findOneBy('discord_event', $objResult['id']);
+                        $objDiscordEvent = DiscordEvent::findOneBy('discord_event', $objResult['id']);
 
-                        if (!$objEvent) {
-                            $objEvent = new DiscordEvent();
+                        if (!$objDiscordEvent) {
+                            $objDiscordEvent = new DiscordEvent();
                         }
 
-                        $objEvent->discord_event = $objResult['id'];
-                        $objEvent->tstamp = time();
-                        $objEvent->twitch_event = $data['id'];
-                        $objEvent->start_time = $data['start_time'];
-                        $objEvent->end_time = $data['end_time'];
-                        $objEvent->title = $data['title'];
-                        $objEvent->category_id = $data['category']['id'] ?: 0;
-                        $objEvent->category_name = $data['category']['name'] ?: '';
-                        $objEvent->user = $data['user'];
-                        $objEvent->save();
+                        $objDiscordEvent->tstamp = time();
+                        $objDiscordEvent->discord_event = $objResult['id'];
+                        $objDiscordEvent->twitch_event = $objEvent->id;
+                        $objDiscordEvent->user = $intConfig;
+                        $objDiscordEvent->save();
                     break;
 
                     break;

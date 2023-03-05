@@ -32,7 +32,7 @@ $GLOBALS['TL_DCA']['tl_pfs_discord_event'] = [
             'panelLayout' => 'filter;search,limit',
         ],
         'label' => [
-            'fields' => ['title', 'category_name', 'start_time'],
+            'fields' => ['user', 'discord_event', 'twitch_event'],
             'format' => '%s [%s] - %s',
             'showColumns' => true,
         ],
@@ -63,7 +63,7 @@ $GLOBALS['TL_DCA']['tl_pfs_discord_event'] = [
     // Palettes
     'palettes' => [
         'default' => '
-            {global_legend},user,discord_event,twitch_event,start_time,end_time,title,category_id,category_name
+            {global_legend},user,discord_event,twitch_event
         ',
     ],
 
@@ -77,9 +77,10 @@ $GLOBALS['TL_DCA']['tl_pfs_discord_event'] = [
             'sql' => "int(10) unsigned NOT NULL default '0'",
         ],
         'user' => [
-            'search' => true,
-            'inputType' => 'text',
-            'sql' => 'text NULL',
+            'inputType' => 'select',
+            'foreignKey' => 'tl_pfs_user_config.username',
+            'sql' => "int(10) unsigned NOT NULL default '0'",
+            'relation' => ['type' => 'belongsTo', 'load' => 'lazy'],
         ],
         'discord_event' => [
             'search' => true,
