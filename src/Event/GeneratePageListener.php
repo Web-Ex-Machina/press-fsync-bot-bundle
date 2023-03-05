@@ -363,16 +363,19 @@ class GeneratePageListener extends \Controller
             return;
         }
 
-        $arrConfigs = [];
+        $encryptionService = System::getContainer()->get('plenta.encryption');
+        $arrConfigs = $this->getTwitchChannels();
         $arrEventsForMsg = [];
         $arrEventsIds = [];
 
+
         // Store config & parse events
         while ($objEvents->next()) {
+            $username = $encryptionService->decrypt($objEvents->getRelated('user')->twitchUsername);
+
             // Store the config for later
-            $arrConfigs[$objEvents->user] = $this->parseConfig($objEvents->getRelated('user'));
-            $arrEventsForMsg[$objEvents->user][] = "Le " . date(Config::get('datimFormat'), $objEvents->start_time) . " - " . $objEvents->title;
-            $arrEventsIds[$objEvents->user][] = $objEvents->id;
+            $arrEventsForMsg[$username][] = "Le " . date(Config::get('datimFormat'), $objEvents->start_time) . " - " . $objEvents->title;
+            $arrEventsIds[$username][] = $objEvents->id;
         }
 
         // For each config, prepare embed
