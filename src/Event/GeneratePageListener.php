@@ -198,39 +198,7 @@ class GeneratePageListener extends \Controller
                         ]
                     );
 
-                    $arrTwitchEventsIds = [];
-                    $hasChanges = false;
-
-                    // Skip if there is nothing scheduled
-                    if (empty($r['data']['segments'])) {
-                        $strSql = 'user = "'.$t['broadcaster_id'].'"';
-
-                        $objDatabaseEvents = DiscordEvent::findBy([$strSql], null);
-                        if ($objDatabaseEvents && 0 < $objDatabaseEvents->count()) {
-                            while ($objDatabaseEvents->next()) {
-                                if (!$objDatabaseEvents->discord_event) {
-                                    continue;
-                                }
-
-                                foreach ($t['events_servers'] as $s) {
-                                    $this->addTask(
-                                        "discord",
-                                        "delete_event",
-                                        sprintf('guilds/%s/scheduled-events/%s', $s, $objDatabaseEvents->discord_event),
-                                        [],
-                                        'DELETE'
-                                    );
-                                }
-
-                                $hasChanges = true;
-                            }
-                        }
-
-                        continue;
-                    }
-
                     // Loop on the events
-
                     foreach ($r['data']['segments'] as $event) {
                         // Skip if event is in one month or after
                         if ($this->getTimestampFromTwitchDate($event['start_time']) >= strtotime("+1 month")) {
