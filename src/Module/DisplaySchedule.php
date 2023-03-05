@@ -260,7 +260,7 @@ class DisplaySchedule extends Module
 
         // Retrieve user config
         $encryptionService = System::getContainer()->get('plenta.encryption');
-        $objConfig = UserConfig::findItems(['twitchBroadcasterId' => $encryptionService->encrypt($objItem->user)], 1);
+        $objConfig = $objItem->getRelated('user');
 
         $objTemplate->username = $objConfig->username;
         $objTemplate->url = sprintf(

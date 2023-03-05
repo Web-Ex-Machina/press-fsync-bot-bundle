@@ -82,6 +82,7 @@ class GeneratePageListener extends \Controller
             $username = $encryptionService->decrypt($objConfigs->twitchUsername);
 
             $arrConfigs[$username] = [
+                'id' => $objConfigs->id,
                 'label' => $objConfigs->username,
                 'url' => 'https://www.twitch.tv/' . $username,
                 'intro' => $objConfigs->syncTwitchScheduleWithDiscordMessagesFormat,
@@ -406,15 +407,15 @@ class GeneratePageListener extends \Controller
     protected function syncTwitchEvent($event, $t)
     {
         try {
-            $objEvent = TwitchEvent::findOneBy(['twitch_event="'.$event['id'].'"'], null);
+            $objEvent = TwitchEvent::findItems(['twitch_event' => $event['id']], 1);
 
             if (!$objEvent) {
                 $objEvent = new TwitchEvent();
-                $objEvent->tstamp = time();
-                $objEvent->twitch_event = $event['id'];
-                $objEvent->user = $t['broadcaster_id'];
             }
 
+            $objEvent->tstamp = time();
+            $objEvent->twitch_event = $event['id'];
+            $objEvent->user = $t['id'];
             $objEvent->start_time = $event['start_time'];
             $objEvent->end_time = $event['end_time'];
             $objEvent->title = $event['title'];

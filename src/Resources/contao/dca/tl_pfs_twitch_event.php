@@ -77,9 +77,10 @@ $GLOBALS['TL_DCA']['tl_pfs_twitch_event'] = [
             'sql' => "int(10) unsigned NOT NULL default '0'",
         ],
         'user' => [
-            'search' => true,
-            'inputType' => 'text',
-            'sql' => 'text NULL',
+            'inputType' => 'select',
+            'foreignKey' => 'tl_pfs_user_config.username',
+            'sql' => "int(10) unsigned NOT NULL default '0'",
+            'relation' => ['type' => 'belongsTo', 'load' => 'lazy'],
         ],
         'twitch_event' => [
             'search' => true,

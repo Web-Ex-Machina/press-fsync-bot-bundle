@@ -90,7 +90,7 @@ $GLOBALS['TL_DCA']['tl_pfs_discord_event'] = [
             'inputType' => 'select',
             'foreignKey' => 'tl_pfs_twitch_event.title',
             'sql' => "int(10) unsigned NOT NULL default '0'",
-            'relation' => ['type' => 'belongsTo', 'load' => 'eager'],
+            'relation' => ['type' => 'belongsTo', 'load' => 'lazy'],
         ],
     ],
 ];
