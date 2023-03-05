@@ -81,27 +81,36 @@ class GeneratePageListener extends \Controller
         while ($objConfigs->next()) {
             $username = $encryptionService->decrypt($objConfigs->twitchUsername);
 
-            $arrConfigs[$username] = [
-                'id' => $objConfigs->id,
-                'label' => $objConfigs->username,
-                'url' => 'https://www.twitch.tv/' . $username,
-                'intro' => $objConfigs->syncTwitchScheduleWithDiscordMessagesFormat,
-                'color' => $objConfigs->syncTwitchScheduleWithDiscordMessagesColor,
-                'events_servers' => deserialize($objConfigs->syncTwitchScheduleWithDiscordEventsServers),
-                'events_messages' => deserialize($objConfigs->syncTwitchScheduleWithDiscordMessagesRecipients),
-                'broadcaster_id' => $encryptionService->decrypt($objConfigs->twitchBroadcasterId)
-            ];
-
-            if ($objConfigs->syncTwitchScheduleWithDiscordEventsFallbackPicture && $objFile = FilesModel::findByUuid($objConfigs->syncTwitchScheduleWithDiscordEventsFallbackPicture)) {
-                $arrConfigs[$username]['default_picture'] = $objFile->path;
-            }
-
-            if ($objConfigs->syncTwitchScheduleWithDiscordMessagesThumbnail && $objFile = FilesModel::findByUuid($objConfigs->syncTwitchScheduleWithDiscordMessagesThumbnail)) {
-                $arrConfigs[$username]['avatar'] = $objFile->path;
-            }
+            $arrConfigs[$username] = $this->parseConfig($objConfigs->current());
         }
 
         return $arrConfigs;
+    }
+
+    protected function parseConfig($objConfig)
+    {
+        $encryptionService = System::getContainer()->get('plenta.encryption');
+
+        $arrConfig = [
+            'id' => $objConfig->id,
+            'label' => $objConfig->username,
+            'url' => 'https://www.twitch.tv/' . $username,
+            'intro' => $objConfig->syncTwitchScheduleWithDiscordMessagesFormat,
+            'color' => $objConfig->syncTwitchScheduleWithDiscordMessagesColor,
+            'events_servers' => deserialize($objConfig->syncTwitchScheduleWithDiscordEventsServers),
+            'events_messages' => deserialize($objConfig->syncTwitchScheduleWithDiscordMessagesRecipients),
+            'broadcaster_id' => $encryptionService->decrypt($objConfig->twitchBroadcasterId)
+        ];
+
+        if ($objConfig->syncTwitchScheduleWithDiscordEventsFallbackPicture && $objFile = FilesModel::findByUuid($objConfig->syncTwitchScheduleWithDiscordEventsFallbackPicture)) {
+            $arrConfig['default_picture'] = $objFile->path;
+        }
+
+        if ($objConfig->syncTwitchScheduleWithDiscordMessagesThumbnail && $objFile = FilesModel::findByUuid($objConfig->syncTwitchScheduleWithDiscordMessagesThumbnail)) {
+            $arrConfig['avatar'] = $objFile->path;
+        }
+
+        return $arrConfig;
     }
 
     public function getYtChannels()
