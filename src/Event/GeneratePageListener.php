@@ -461,6 +461,21 @@ class GeneratePageListener extends \Controller
 
     protected function addTask($strType, $strTask, $strEndpoint, $arrData, $strMethod)
     {
+        // Add a way to skip the task system for debug purposes
+        if ("1" === Input::get('debug')) {
+            echo sprintf(
+                'Add Task %s - %s - %s - %s - %s',
+                $strType,
+                $strTask,
+                $strEndpoint,
+                implode(' | ', $arrData),
+                $strMethod
+            );
+            echo '<hr />';
+
+            return;
+        }
+
         if ($this->shouldTaskBeAdded($strType, $strTask, $strEndpoint, $arrData, $strMethod)) {
             $objTask = new Task();
             $objTask->created_at = microtime(true);
