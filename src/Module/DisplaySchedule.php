@@ -170,15 +170,23 @@ class DisplaySchedule extends Module
 
         // User filter
         $arrOptions = [];
+        foreach ($this->pids as $c) {
+            $objConfig = UserConfig::findByPk($c);
 
+            $arrOptions[] = [
+                'value' => $c,
+                'label' => $objConfig->username,
+                'selected' => is_array(Input::get('users')) && in_array($c, Input::get('users')) ? true : false
+            ];
+        }
 
         $this->filters[] = [
             'type' => "select",
-            'name' => "users",
+            'name' => "users[]",
             'label' => $GLOBALS['TL_LANG']['PFS']['SCHEDULE']['FILTERS']['users'],
             'placeholder' => $GGLOBALS['TL_LANG']['PFS']['SCHEDULE']['FILTERS']['usersPlaceholder'],
             'value' => Input::get('users') ?: '',
-            'options' => [],
+            'options' => $arrOptions,
             'multiple' => true,
         ];
 
