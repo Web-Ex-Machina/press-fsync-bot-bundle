@@ -391,7 +391,7 @@ class GeneratePageListener extends \Controller
                     'name' => $arrConfig['label'],
                     "url" => $arrConfig['url'],
                 ],
-                'timestamp' => date("c"),
+                //'timestamp' => date("c"),
                 'color' => hexdec($arrConfig['color'] ?: "FFFFFF"),
                 'thumbnail' => [
                     'url' => \Environment::get('base') . $arrConfig['avatar']
