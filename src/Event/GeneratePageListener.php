@@ -194,6 +194,7 @@ class GeneratePageListener extends \Controller
     protected function syncTwitchEvents()
     {
         $arrTwitchChannels = $this->getTwitchChannels();
+        $arrEvents = [];
 
         foreach ($arrTwitchChannels as $t) {
             // First, get the next events from the Twitch schedule
@@ -218,7 +219,17 @@ class GeneratePageListener extends \Controller
                 }
 
                 // Sync the event in the database
-                $this->syncTwitchEvent($event, $t);
+                $objEvent = $this->syncTwitchEvent($event, $t);
+                $arrEvents[] = $objEvent->id;
+            }
+        }
+
+        // Finally, remove events that have been removed from Twitch
+        $strSql = 'id NOT IN(' . implode(',', $arrEvents) . ')';
+        $objDatabaseEvents = TwitchEvent::findItems([$strSql], null);
+        if ($objDatabaseEvents && 0 < $objDatabaseEvents->count()) {
+            while ($objDatabaseEvents->next()) {
+                $objDatabaseEvents->delete();
             }
         }
     }
@@ -297,32 +308,33 @@ class GeneratePageListener extends \Controller
                 }
 
                 // 1 & 2
-                foreach ($t['events_servers'] as $s) {
-                    if ($objDiscordEvents) {
-                        foreach ($objDiscordEvents as $e) {
-                            // 1
-                            if (0 === DiscordEvent::countItems(['discord_event' => $e['id']])) {
-                                $this->addTask(
-                                    "discord",
-                                    "delete_event",
-                                    sprintf('guilds/%s/scheduled-events/%s', $s, $e['id']),
-                                    [],
-                                    'DELETE'
-                                );
-                            } else {
-                                $objEvent = DiscordEvent::findItems(['discord_event' => $e['id']], 1);
+                if ($objDiscordEvents) {
+                    foreach ($objDiscordEvents as $e) {
+                        // 1
+                        if (0 === DiscordEvent::countItems(['discord_event' => $e['id']])) {
+                            $this->addTask(
+                                "discord",
+                                "delete_event",
+                                sprintf('guilds/%s/scheduled-events/%s', $s, $e['id']),
+                                [],
+                                'DELETE'
+                            );
 
-                                // 2
-                                if (null !== $objEvent->getRelated('twitch_event')->canceled_until) {
-                                    $this->addTask(
-                                        "discord",
-                                        "delete_event",
-                                        sprintf('guilds/%s/scheduled-events/%s', $s, $e['id']),
-                                        [],
-                                        'DELETE'
-                                    );
-                                }
-                            }
+                            continue;
+                        }
+
+                        // 2
+                        $objEvent = DiscordEvent::findItems(['discord_event' => $e['id']], 1);
+                        $objTwitchEvent = $objEvent->getRelated('twitch_event');
+
+                        if (!$objTwitchEvent || null !== $objTwitchEvent->canceled_until) {
+                            $this->addTask(
+                                "discord",
+                                "delete_event",
+                                sprintf('guilds/%s/scheduled-events/%s', $s, $e['id']),
+                                [],
+                                'DELETE'
+                            );
                         }
                     }
                 }
