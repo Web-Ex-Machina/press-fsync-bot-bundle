@@ -568,6 +568,13 @@ class GeneratePageListener extends \Controller
                             break;
                         }
 
+                        if (is_array($objResult['scheduled_end_time']) && "Cannot schedule event in the past." === $objResult['scheduled_end_time'][0]) {
+                            $objEvent->delete();
+                            $objTask->delete();
+                            $blnSuccess = false;
+                            break;
+                        }
+
                         // If we do not have an ID, it is because the request failed
                         // so we must break the switch
                         if (!$objResult['id']) {
