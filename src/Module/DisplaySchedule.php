@@ -230,12 +230,13 @@ class DisplaySchedule extends Module
             'name' => "start_time_after",
             'label' => $GLOBALS['TL_LANG']['PFS']['SCHEDULE']['FILTERS']['start_time_after'],
             'placeholder' => $GLOBALS['TL_LANG']['PFS']['SCHEDULE']['FILTERS']['start_time_afterPlaceholder'],
-            'value' => Input::get('start_time_after') ?: '',
+            'value' => Input::get('start_time_after') ?: date(Config::get('dateFormat')),
             "formatdate" => Config::get('dateFormat'),
-            "mindate" => date(Config::get('dateFormat'), time()),
+            "mindate" => date(Config::get('dateFormat')),
             "maxdate" => date(Config::get('dateFormat'), strtotime("+1 month")),
         ];
 
+        $this->config['start_time_after'] = time();
         if ('' !== Input::get('start_time_after') && null !== Input::get('start_time_after')) {
             $objDate = \DateTime::createFromFormat(Config::get('dateFormat'), Input::get('start_time_after'));
             $objDate->setTime(0, 0, 0, 0);
