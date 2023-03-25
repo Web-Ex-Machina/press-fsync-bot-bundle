@@ -99,6 +99,7 @@ $GLOBALS['TL_DCA']['tl_pfs_twitch_event'] = [
         ],
         'end_time' => [
             'inputType' => 'text',
+            'flag' => 8,
             'eval' => ['rgxp' => 'datim', 'tl_class' => 'w50'],
             'sql' => 'text NULL',
         ],
