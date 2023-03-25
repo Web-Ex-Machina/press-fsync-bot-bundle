@@ -311,14 +311,20 @@ class DisplaySchedule extends Module
         $objTemplate->count = $intCount; // see #5708
 
         // Parse event date
-        $objStartAt = new \DateTime('@' . $objItem->start_time);
-        $objTemplate->start_time = date(Config::get('datimFormat'), (int) $objItem->start_time);
+        if ($objItem->start_time) {
+            $objStartAt = new \DateTime('@' . $objItem->start_time);
+            $objTemplate->start_time = date(Config::get('datimFormat'), (int) $objItem->start_time);
+        }
 
-        $objEndAt = new \DateTime('@' . $objItem->end_time);
+        if ($objItem->end_time) {
+            $objEndAt = new \DateTime('@' . $objItem->end_time);
+        }
 
-        $objDuration = $objStartAt->diff($objEndAt);
-        // @todo : handle event with duration less than one hour and more than 24 hours
-        $objTemplate->duration = $objDuration->format('%hh%I');
+        if ($objStartAt && $objEndAt) {
+            $objDuration = $objStartAt->diff($objEndAt);
+            // @todo : handle event with duration less than one hour and more than 24 hours
+            $objTemplate->duration = $objDuration->format('%hh%I');
+        }
 
         // Retrieve user config
         $encryptionService = System::getContainer()->get('plenta.encryption');
