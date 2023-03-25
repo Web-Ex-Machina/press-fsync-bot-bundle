@@ -155,19 +155,6 @@ class DisplaySchedule extends Module
      */
     protected function buildFilters()
     {
-        // Add fulltext search if asked
-        $this->filters[] = [
-            'type' => 'text',
-            'name' => 'search',
-            'label' => $GLOBALS['TL_LANG']['PFS']['SCHEDULE']['FILTERS']['search'],
-            'placeholder' => $GLOBALS['TL_LANG']['PFS']['FILTERS']['SCHEDULE']['searchPlaceholder'],
-            'value' => Input::get('search') ?: '',
-        ];
-
-        if ('' !== Input::get('search') && null !== Input::get('search')) {
-            $this->config['search'] = StringUtil::formatKeywords(Input::get('search'));
-        }
-
         // User filter
         $arrOptions = [];
         foreach ($this->pids as $c) {
@@ -224,39 +211,17 @@ class DisplaySchedule extends Module
             $this->config['category_name'] = Input::get('category');
         }
 
-        // Start date filter
+        // Add fulltext search if asked
         $this->filters[] = [
-            'type' => "datepicker",
-            'name' => "start_time_after",
-            'label' => $GLOBALS['TL_LANG']['PFS']['SCHEDULE']['FILTERS']['start_time_after'],
-            'placeholder' => $GLOBALS['TL_LANG']['PFS']['SCHEDULE']['FILTERS']['start_time_afterPlaceholder'],
-            'value' => Input::get('start_time_after') ?: date(Config::get('dateFormat')),
-            "formatdate" => Config::get('dateFormat'),
-            "mindate" => date(Config::get('dateFormat')),
-            "maxdate" => date(Config::get('dateFormat'), strtotime("+1 month")),
+            'type' => 'text',
+            'name' => 'search',
+            'label' => $GLOBALS['TL_LANG']['PFS']['SCHEDULE']['FILTERS']['search'],
+            'placeholder' => $GLOBALS['TL_LANG']['PFS']['FILTERS']['SCHEDULE']['searchPlaceholder'],
+            'value' => Input::get('search') ?: '',
         ];
 
-        $this->config['start_time_after'] = time();
-        if ('' !== Input::get('start_time_after') && null !== Input::get('start_time_after')) {
-            $objDate = \DateTime::createFromFormat(Config::get('dateFormat'), Input::get('start_time_after'));
-            $objDate->setTime(0, 0, 0, 0);
-            $this->config['start_time_after'] = $objDate->getTimestamp();
-        }
-
-        // Stop date filter
-        $this->filters[] = [
-            'type' => "datepicker",
-            'name' => "start_time_before",
-            'label' => $GLOBALS['TL_LANG']['PFS']['SCHEDULE']['FILTERS']['start_time_before'],
-            'placeholder' => $GLOBALS['TL_LANG']['PFS']['SCHEDULE']['FILTERS']['start_time_beforePlaceholder'],
-            'value' => Input::get('start_time_before') ?: '',
-            "formatdate" => Config::get('dateFormat'),
-            "mindate" => date(Config::get('dateFormat'), time()),
-            "maxdate" => date(Config::get('dateFormat'), strtotime("+1 month")),
-        ];
-
-        if ('' !== Input::get('start_time_before') && null !== Input::get('start_time_before')) {
-            $this->config['start_time_before'] = Input::get('start_time_before');
+        if ('' !== Input::get('search') && null !== Input::get('search')) {
+            $this->config['search'] = StringUtil::formatKeywords(Input::get('search'));
         }
     }
 
