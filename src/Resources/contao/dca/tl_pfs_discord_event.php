@@ -63,7 +63,7 @@ $GLOBALS['TL_DCA']['tl_pfs_discord_event'] = [
     // Palettes
     'palettes' => [
         'default' => '
-            {global_legend},user,twitch_event,discord_event
+            {global_legend},user,twitch_event,discord_event,discord_event_name,discord_event_scheduled_start_time,discord_event_scheduled_end_time,discord_event_entity_metadata_location,discord_event_category_name
         ',
     ],
 
@@ -80,42 +80,50 @@ $GLOBALS['TL_DCA']['tl_pfs_discord_event'] = [
             'inputType' => 'select',
             'foreignKey' => 'tl_pfs_user_config.username',
             'sql' => "int(10) unsigned NOT NULL default '0'",
+            'eval' => ['tl_class' => 'w50'],
             'relation' => ['type' => 'belongsTo', 'load' => 'lazy'],
         ],
         'twitch_event' => [
             'inputType' => 'select',
             'foreignKey' => 'tl_pfs_twitch_event.title',
             'sql' => "int(10) unsigned NOT NULL default '0'",
+            'eval' => ['tl_class' => 'w50'],
             'relation' => ['type' => 'belongsTo', 'load' => 'lazy'],
         ],
         'discord_event' => [
-            'search' => true,
             'inputType' => 'text',
+            'search' => true,
+            'eval' => ['tl_class' => 'w50'],
             'sql' => 'text NULL',
         ],
         'discord_event_name' => [
-            'search' => true,
             'inputType' => 'text',
+            'search' => true,
+            'eval' => ['tl_class' => 'w50'],
             'sql' => 'text NULL',
         ],
         'discord_event_scheduled_start_time' => [
-            'search' => true,
             'inputType' => 'text',
+            'search' => true,
+            'eval' => ['tl_class' => 'w50'],
             'sql' => 'text NULL',
         ],
         'discord_event_scheduled_end_time' => [
-            'search' => true,
             'inputType' => 'text',
+            'search' => true,
+            'eval' => ['tl_class' => 'w50'],
             'sql' => 'text NULL',
         ],
         'discord_event_entity_metadata_location' => [
-            'search' => true,
             'inputType' => 'text',
+            'search' => true,
+            'eval' => ['tl_class' => 'w50'],
             'sql' => 'text NULL',
         ],
         'discord_event_category_name' => [
-            'search' => true,
             'inputType' => 'text',
+            'search' => true,
+            'eval' => ['tl_class' => 'w50'],
             'sql' => 'text NULL',
         ],
     ],

@@ -66,7 +66,6 @@ $GLOBALS['TL_DCA']['tl_pfs_user_config'] = [
         'default' => '
             {global_legend},username;
             {twitch_legend},twitchUsername,twitchBroadcasterId;
-            {youtube_legend},youtubeChannel;
             {syncTwitchScheduleWithDiscordEvents_legend},syncTwitchScheduleWithDiscordEvents;
             {syncTwitchScheduleWithDiscordMessages_legend},syncTwitchScheduleWithDiscordMessages;
             {sendDiscordAlertWhenLiveOnTwitch_legend},sendDiscordAlertWhenLiveOnTwitch
@@ -111,19 +110,6 @@ $GLOBALS['TL_DCA']['tl_pfs_user_config'] = [
             'sql' => "varchar(255) NOT NULL default ''",
         ],
         'twitchBroadcasterId' => [
-            'exclude' => true,
-            'search' => true,
-            'inputType' => 'text',
-            'load_callback' => [
-                ['plenta.encryption', 'decrypt'],
-            ],
-            'save_callback' => [
-                ['plenta.encryption', 'encrypt'],
-            ],
-            'eval' => ['mandatory' => true, 'rgxp' => 'extnd', 'unique' => true, 'maxlength' => 255, 'tl_class' => 'w50'],
-            'sql' => "varchar(255) NOT NULL default ''",
-        ],
-        'youtubeChannel' => [
             'exclude' => true,
             'search' => true,
             'inputType' => 'text',

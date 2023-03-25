@@ -6,53 +6,69 @@
         <target>Paramètres généraux</target>
       </trans-unit>
 
-      <trans-unit id="tl_pfs_discord_event.created_at.0">
-        <source>Created at</source>
-        <target>Créée le</target>
+      <trans-unit id="tl_pfs_discord_event.user.0">
+        <source>User</source>
+        <target>Utilisateur</target>
       </trans-unit>
-      <trans-unit id="tl_pfs_discord_event.created_at.1">
-        <source>Enter the created at task date</source>
-        <target>Saisir la date de création de la tâche</target>
+      <trans-unit id="tl_pfs_discord_event.user.1">
+        <source>Select the event user</source>
+        <target>Sélectionnez l'utilisateur de l'événement</target>
       </trans-unit>
-      <trans-unit id="tl_pfs_discord_event.type.0">
-        <source>Type</source>
-        <target>Type</target>
+      <trans-unit id="tl_pfs_discord_event.twitch_event.0">
+        <source>Twitch event ID</source>
+        <target>Identifiant de l'événement Twitch</target>
       </trans-unit>
-      <trans-unit id="tl_pfs_discord_event.type.1">
-        <source>Enter the task type</source>
-        <target>Saisir le type de tâche</target>
+      <trans-unit id="tl_pfs_discord_event.twitch_event.1">
+        <source>Enter the Twitch event ID</source>
+        <target>Saisir l'identifiant de l'événement Twitch</target>
       </trans-unit>
-      <trans-unit id="tl_pfs_discord_event.task.0">
-        <source>Name</source>
-        <target>Intitulé</target>
+      <trans-unit id="tl_pfs_discord_event.discord_event.0">
+        <source>Discord event ID</source>
+        <target>Identifiant de l'événement Discord</target>
       </trans-unit>
-      <trans-unit id="tl_pfs_discord_event.task.1">
-        <source>Enter the task name</source>
-        <target>Saisir l'intitulé de la tâche</target>
+      <trans-unit id="tl_pfs_discord_event.discord_event.1">
+        <source>Enter the Discord event ID</source>
+        <target>Saisir l'identifiant de l'événement Discord</target>
       </trans-unit>
-      <trans-unit id="tl_pfs_discord_event.endpoint.0">
-        <source>Endpoint</source>
-        <target>Endpoint</target>
+      <trans-unit id="tl_pfs_discord_event.discord_event_name.0">
+        <source>Event name</source>
+        <target>Nom de l'événement</target>
       </trans-unit>
-      <trans-unit id="tl_pfs_discord_event.endpoint.1">
-        <source>Enter the task endpoint</source>
-        <target>Saisir le endpoint de la tâche</target>
+      <trans-unit id="tl_pfs_discord_event.discord_event_name.1">
+        <source>Enter the event name</source>
+        <target>Saisir le nom de l'événement</target>
       </trans-unit>
-      <trans-unit id="tl_pfs_discord_event.data.0">
-        <source>Data</source>
-        <target>Données</target>
+      <trans-unit id="tl_pfs_discord_event.discord_event_scheduled_start_time.0">
+        <source>Start time</source>
+        <target>Date de début</target>
       </trans-unit>
-      <trans-unit id="tl_pfs_discord_event.data.1">
-        <source>Enter the task data</source>
-        <target>Saisir les données de la tâche</target>
+      <trans-unit id="tl_pfs_discord_event.discord_event_scheduled_start_time.1">
+        <source>Enter the event start time</source>
+        <target>Saisir la date de début de l'événement</target>
       </trans-unit>
-      <trans-unit id="tl_pfs_discord_event.method.0">
-        <source>Method</source>
-        <target>Méthode</target>
+      <trans-unit id="tl_pfs_discord_event.discord_event_scheduled_end_time.0">
+        <source>End time</source>
+        <target>Date de fin</target>
       </trans-unit>
-      <trans-unit id="tl_pfs_discord_event.method.1">
-        <source>Enter the task method</source>
-        <target>Saisir la méthode de la tâche</target>
+      <trans-unit id="tl_pfs_discord_event.discord_event_scheduled_end_time.1">
+        <source>Enter the event end time</source>
+        <target>Saisir la date de fin de l'événement</target>
+      </trans-unit>
+      <trans-unit id="tl_pfs_discord_event.discord_event_entity_metadata_location.0">
+        <source>Location</source>
+        <target>Emplacement</target>
+      </trans-unit>
+      <trans-unit id="tl_pfs_discord_event.discord_event_entity_metadata_location.1">
+        <source>Enter the event location</source>
+        <target>Saisir l'emplacement de l'événement</target>
+      </trans-unit>
+      <trans-unit id="tl_pfs_discord_event.discord_event_category_name.0">
+        <source>Category name</source>
+        <target>Nom de catégorie</target>
+      </trans-unit>
+      <trans-unit id="tl_pfs_discord_event.discord_event_category_name.1">
+        <source>Enter the event category name</source>
+        <target>Saisir le nom de catégorie de l'événement</target>
       </trans-unit>
     </body>
   </file>
