@@ -27,12 +27,12 @@ $GLOBALS['TL_DCA']['tl_pfs_twitch_event'] = [
     'list' => [
         'sorting' => [
             'mode' => 1,
-            'fields' => ['user'],
+            'fields' => ['user', 'start_time'],
             'flag' => 1,
             'panelLayout' => 'filter;search,limit',
         ],
         'label' => [
-            'fields' => ['title', 'category_name', 'start_time'],
+            'fields' => ['title', 'user', 'category_name', 'start_time', 'end_time', 'is_recurring', 'canceled_until'],
             'format' => '%s [%s] - %s',
             'showColumns' => true,
         ],
@@ -63,7 +63,7 @@ $GLOBALS['TL_DCA']['tl_pfs_twitch_event'] = [
     // Palettes
     'palettes' => [
         'default' => '
-            {global_legend},user,twitch_event,start_time,end_time,title,category_id,category_name,is_recurring,canceled_until
+            {global_legend},user,twitch_event,title,start_time,end_time,category_id,category_name,is_recurring,canceled_until
         ',
     ],
 
@@ -78,46 +78,57 @@ $GLOBALS['TL_DCA']['tl_pfs_twitch_event'] = [
         ],
         'user' => [
             'inputType' => 'select',
+            'filter' => true,
+            'eval' => ['tl_class' => 'w50'],
             'foreignKey' => 'tl_pfs_user_config.username',
             'sql' => "int(10) unsigned NOT NULL default '0'",
             'relation' => ['type' => 'belongsTo', 'load' => 'lazy'],
         ],
         'twitch_event' => [
-            'search' => true,
             'inputType' => 'text',
+            'search' => true,
+            'eval' => ['tl_class' => 'w50'],
             'sql' => 'text NULL',
         ],
         'start_time' => [
             'inputType' => 'text',
+            'filter' => true,
+            'flag' => 8,
+            'eval' => ['rgxp' => 'datim', 'tl_class' => 'w50'],
             'sql' => 'text NULL',
         ],
         'end_time' => [
             'inputType' => 'text',
+            'eval' => ['rgxp' => 'datim', 'tl_class' => 'w50'],
             'sql' => 'text NULL',
         ],
         'title' => [
             'search' => true,
             'inputType' => 'text',
+            'eval' => ['tl_class' => 'clr'],
             'sql' => 'text NULL',
         ],
         'canceled_until' => [
-            'search' => true,
             'inputType' => 'text',
+            'eval' => ['tl_class' => 'w50'],
             'sql' => 'text NULL',
         ],
         'category_id' => [
             'inputType' => 'text',
+            'search' => true,
+            'eval' => ['tl_class' => 'w50'],
             'sql' => 'int(10) unsigned NOT NULL default 0',
         ],
         'category_name' => [
-            'search' => true,
             'inputType' => 'text',
+            'search' => true,
+            'eval' => ['tl_class' => 'w50'],
             'sql' => 'text NULL',
         ],
         'is_recurring' => [
-            'filter' => true,
             'inputType' => 'checkbox',
-            'eval' => ['submitOnChange' => true],
+            'filter' => true,
+            'eval' => ['submitOnChange' => true, 'tl_class' => 'w50 m12'],
             'sql' => "char(1) NOT NULL default ''",
         ],
     ],

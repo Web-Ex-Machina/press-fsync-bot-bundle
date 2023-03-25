@@ -14,6 +14,14 @@
         <source>Manage user configurations</source>
         <target>Gérer les configurations des usagers</target>
       </trans-unit>
+      <trans-unit id="MOD.press_fsync_twitch_events.0">
+        <source>Twitch events</source>
+        <target>Événements Twitch</target>
+      </trans-unit>
+      <trans-unit id="MOD.press_fsync_twitch_events.1">
+        <source>Manage Twitch events stored inside the database</source>
+        <target>Gérer les événements Twitch répertoriés dans la base de donnée</target>
+      </trans-unit>
       <trans-unit id="MOD.press_fsync_discord_events.0">
         <source>Discord events</source>
         <target>Événements Discord</target>
