@@ -155,19 +155,6 @@ class DisplaySchedule extends Module
      */
     protected function buildFilters()
     {
-        // Add fulltext search if asked
-        $this->filters[] = [
-            'type' => 'text',
-            'name' => 'search',
-            'label' => $GLOBALS['TL_LANG']['PFS']['SCHEDULE']['FILTERS']['search'],
-            'placeholder' => $GLOBALS['TL_LANG']['PFS']['FILTERS']['SCHEDULE']['searchPlaceholder'],
-            'value' => Input::get('search') ?: '',
-        ];
-
-        if ('' !== Input::get('search') && null !== Input::get('search')) {
-            $this->config['search'] = StringUtil::formatKeywords(Input::get('search'));
-        }
-
         // User filter
         $arrOptions = [];
         foreach ($this->pids as $c) {
@@ -223,40 +210,6 @@ class DisplaySchedule extends Module
         if ('' !== Input::get('category') && null !== Input::get('category')) {
             $this->config['category_name'] = Input::get('category');
         }
-
-        // Start date filter
-        $this->filters[] = [
-            'type' => "datepicker",
-            'name' => "start_time_after",
-            'label' => $GLOBALS['TL_LANG']['PFS']['SCHEDULE']['FILTERS']['start_time_after'],
-            'placeholder' => $GLOBALS['TL_LANG']['PFS']['SCHEDULE']['FILTERS']['start_time_afterPlaceholder'],
-            'value' => Input::get('start_time_after') ?: '',
-            "formatdate" => Config::get('dateFormat'),
-            "mindate" => date(Config::get('dateFormat'), time()),
-            "maxdate" => date(Config::get('dateFormat'), strtotime("+1 month")),
-        ];
-
-        if ('' !== Input::get('start_time_after') && null !== Input::get('start_time_after')) {
-            $objDate = \DateTime::createFromFormat(Config::get('dateFormat'), Input::get('start_time_after'));
-            $objDate->setTime(0, 0, 0, 0);
-            $this->config['start_time_after'] = $objDate->getTimestamp();
-        }
-
-        // Stop date filter
-        $this->filters[] = [
-            'type' => "datepicker",
-            'name' => "start_time_before",
-            'label' => $GLOBALS['TL_LANG']['PFS']['SCHEDULE']['FILTERS']['start_time_before'],
-            'placeholder' => $GLOBALS['TL_LANG']['PFS']['SCHEDULE']['FILTERS']['start_time_beforePlaceholder'],
-            'value' => Input::get('start_time_before') ?: '',
-            "formatdate" => Config::get('dateFormat'),
-            "mindate" => date(Config::get('dateFormat'), time()),
-            "maxdate" => date(Config::get('dateFormat'), strtotime("+1 month")),
-        ];
-
-        if ('' !== Input::get('start_time_before') && null !== Input::get('start_time_before')) {
-            $this->config['start_time_before'] = Input::get('start_time_before');
-        }
     }
 
     /**
@@ -311,14 +264,20 @@ class DisplaySchedule extends Module
         $objTemplate->count = $intCount; // see #5708
 
         // Parse event date
-        $objStartAt = new \DateTime('@' . $objItem->start_time);
-        $objTemplate->start_time = date(Config::get('datimFormat'), (int) $objItem->start_time);
+        if ($objItem->start_time) {
+            $objStartAt = new \DateTime('@' . $objItem->start_time);
+            $objTemplate->start_time = date('d/m (H\hi)', (int) $objItem->start_time);
+        }
 
-        $objEndAt = new \DateTime('@' . $objItem->end_time);
+        if ($objItem->end_time) {
+            $objEndAt = new \DateTime('@' . $objItem->end_time);
+        }
 
-        $objDuration = $objStartAt->diff($objEndAt);
-        // @todo : handle event with duration less than one hour and more than 24 hours
-        $objTemplate->duration = $objDuration->format('%hh%I');
+        if ($objStartAt && $objEndAt) {
+            $objDuration = $objStartAt->diff($objEndAt);
+            // @todo : handle event with duration less than one hour and more than 24 hours
+            $objTemplate->duration = $objDuration->format('%hh%I');
+        }
 
         // Retrieve user config
         $encryptionService = System::getContainer()->get('plenta.encryption');

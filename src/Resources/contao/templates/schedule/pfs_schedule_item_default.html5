@@ -1,29 +1,11 @@
-<div class="event event_default <?= $this->class ?>"  data-event="<?= $this->id ?>" itemscope itemtype="http://schema.org/Article">
-	<div class="event__wrapper">
-		<?php if ($this->picture): ?>
-		<div class="event__figure img-container r_2-1 hidden-sm">
-			<img src="<?= $this->picture ?>" alt="<?= $this->title ?>" />
-		</div>
-		<?php endif; ?>
-
-		<div class="event__content">
-			<?php if ($this->picture): ?>
-				<div class="event__figure img-container r_1-1 hidden visible-sm">
-					<img src="<?= $this->picture ?>" alt="<?= $this->title ?>" />
-				</div>
-			<?php endif; ?>
-
-			<div class="event__text">
-				<div class="event__title h4" itemprop="name"><?= $this->title ?></div>
-				<img width="100" src="<?= $this->avatar ?>" alt="" />
-				<p><?= $this->category_name ?></p>
-				<p><?= $this->start_time ?></p>
-				<p><?= $this->duration ?></p>
-				<p><?= $this->username ?></p>
-				<a href="<?= $this->url ?>" title="Voir la page de <?= $this->username ?>" target="_blank" class="btn">Aller sur la page</a>
-			</div>
-
-		</div>
-
-	</div>
-</div>
+<tr class="table-list__line" data-id="<?= $this->id ?>">
+	<td class="table-list__cell" data-name="avatar"><img width="50" src="<?= $this->avatar ?>" alt="<?= $this->username ?>" /></td>
+	<td class="table-list__cell" data-name="user"><?= $this->username ?></td>
+	<td class="table-list__cell" data-name="title"><?= $this->title ?></td>
+	<td class="table-list__cell" data-name="category"><?= $this->category_name ?></td>
+	<td class="table-list__cell" data-name="date"><?= $this->start_time ?></td>
+	<td class="table-list__cell" data-name="duration"><?= $this->duration ?></td>
+	<td class="table-list__cell" data-name="actions">
+		<a class="btn" href="<?= $this->url ?>" title="Voir la page de <?= $this->username ?>" target="_blank" class=""><i class="fal fa-eye"></i></a>
+	</td>
+</tr>
