@@ -313,7 +313,7 @@ class DisplaySchedule extends Module
         // Parse event date
         if ($objItem->start_time) {
             $objStartAt = new \DateTime('@' . $objItem->start_time);
-            $objTemplate->start_time = date(Config::get('datimFormat'), (int) $objItem->start_time);
+            $objTemplate->start_time = date('d/m (H\hi)', (int) $objItem->start_time);
         }
 
         if ($objItem->end_time) {
