@@ -1,7 +1,53 @@
 <?xml version="1.0" ?><xliff version="1.1">
   <file datatype="php" original="src/Resources/contao/languages/en/default.php" source-language="en" target-language="fr">
     <body>
+      <!-- Global messages -->
+      <trans-unit id="PFS.SCHEDULE.empty">
+        <source>No events scheduled</source>
+        <target>Pas d'événements programmés</target>
+      </trans-unit>
 
+      <!-- Filters -->
+      <trans-unit id="PFS.SCHEDULE.FILTERS.search">
+        <source>Search</source>
+        <target>Recherche</target>
+      </trans-unit>
+      <trans-unit id="PFS.SCHEDULE.FILTERS.searchPlaceholder">
+        <source>Enter at least 3 chars to search an event</source>
+        <target>Saisir au moins 3 caractères pour rechercher un événement</target>
+      </trans-unit>
+      <trans-unit id="PFS.SCHEDULE.FILTERS.users">
+        <source>Streamers</source>
+        <target>Streamers</target>
+      </trans-unit>
+      <trans-unit id="PFS.SCHEDULE.FILTERS.usersPlaceholder">
+        <source>Select a streamer</source>
+        <target>Sélectionnez un streamer</target>
+      </trans-unit>
+      <trans-unit id="PFS.SCHEDULE.FILTERS.category">
+        <source>Category</source>
+        <target>Catégorie</target>
+      </trans-unit>
+      <trans-unit id="PFS.SCHEDULE.FILTERS.categoryPlaceholder">
+        <source>Select a category</source>
+        <target>Sélectionnez une catégorie</target>
+      </trans-unit>
+      <trans-unit id="PFS.SCHEDULE.FILTERS.start_time_after">
+        <source>Starts after</source>
+        <target>Débute après le</target>
+      </trans-unit>
+      <trans-unit id="PFS.SCHEDULE.FILTERS.start_time_afterPlaceholder">
+        <source>Starts after</source>
+        <target>Débute après le</target>
+      </trans-unit>
+      <trans-unit id="PFS.SCHEDULE.FILTERS.start_time_before">
+        <source>Starts before</source>
+        <target>Débute avant le</target>
+      </trans-unit>
+      <trans-unit id="PFS.SCHEDULE.FILTERS.start_time_beforePlaceholder">
+        <source>Starts before</source>
+        <target>Débute avant le</target>
+      </trans-unit>
 	  </body>
   </file>
 </xliff>
