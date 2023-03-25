@@ -39,9 +39,21 @@
   <?php if (empty($this->items)): ?>
     <p class="empty"><?= $this->empty; ?></p>
   <?php else: ?>
-  	
-	  <div class="events" id="events">
-	    <?= implode('', $this->items); ?>
+		<div class="table-list fix--shadow">
+			<table class="table-list__container">
+				<thead>
+					<th class="table-list__cell" data-name="avatar">Avatar</th>
+					<th class="table-list__cell" data-name="user">Streamer</th>
+					<th class="table-list__cell" data-name="title">Intitulé</th>
+					<th class="table-list__cell" data-name="category">Catégorie</th>
+					<th class="table-list__cell" data-name="date">Date</th>
+					<th class="table-list__cell" data-name="duration">Durée</th>
+					<th class="table-list__cell" data-name="actions"><i class="fal fa-pencil-ruler"></i></th>
+				</thead>
+				<tbody>
+					<?= implode('', $this->items); ?>
+				</tbody>
+			</table>
 		</div>
 	  <?= $this->pagination; ?>
 
