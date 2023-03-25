@@ -226,7 +226,7 @@ class GeneratePageListener extends \Controller
 
         // Finally, remove events that have been removed from Twitch
         $strSql = 'id NOT IN(' . implode(',', $arrEvents) . ')';
-        $objDatabaseEvents = TwitchEvent::findItems([$strSql], null);
+        $objDatabaseEvents = TwitchEvent::findBy([$strSql], null);
         if ($objDatabaseEvents && 0 < $objDatabaseEvents->count()) {
             while ($objDatabaseEvents->next()) {
                 $objDatabaseEvents->delete();
