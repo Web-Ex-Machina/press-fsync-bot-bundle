@@ -210,19 +210,6 @@ class DisplaySchedule extends Module
         if ('' !== Input::get('category') && null !== Input::get('category')) {
             $this->config['category_name'] = Input::get('category');
         }
-
-        // Add fulltext search if asked
-        $this->filters[] = [
-            'type' => 'text',
-            'name' => 'search',
-            'label' => $GLOBALS['TL_LANG']['PFS']['SCHEDULE']['FILTERS']['search'],
-            'placeholder' => $GLOBALS['TL_LANG']['PFS']['FILTERS']['SCHEDULE']['searchPlaceholder'],
-            'value' => Input::get('search') ?: '',
-        ];
-
-        if ('' !== Input::get('search') && null !== Input::get('search')) {
-            $this->config['search'] = StringUtil::formatKeywords(Input::get('search'));
-        }
     }
 
     /**
