@@ -72,6 +72,9 @@ $GLOBALS['TL_DCA']['tl_pfs_discord_message'] = [
         'id' => [
             'sql' => 'int(10) unsigned NOT NULL auto_increment',
         ],
+        'tstamp' => [
+            'sql' => "int(10) unsigned NOT NULL default '0'",
+        ],
         'server' => [
             'search' => true,
             'inputType' => 'text',

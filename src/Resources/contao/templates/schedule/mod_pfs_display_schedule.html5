@@ -1,0 +1,51 @@
+<?php $this->extend('block_unsearchable'); ?>
+
+<?php $this->block('content'); ?>
+
+  <?php if ($this->filters): ?>
+		<form action="{{env::request}}" method="GET">
+		    <div class="events__filters m-bottom" data-container="events">
+		    	<div class="events__filters__line">
+			    	<?php foreach ($this->filters as $f): ?>
+							<?php if ('select' == $f['type']): ?>
+								<div class="form-group">
+								<select class="filter" name="<?= $f['name']; ?>"<?= $f['multiple'] ? ' multiple' : ''; ?><?= $f['multiple'] ? ' placeholder="'. ($f['placeholder'] ?: $f['label']) .'"' : ''; ?> onchange="this.closest('form').submit()">
+									<?php if (!$f['multiple']): ?>
+									<option value="">- <?= $f['label']; ?> -</option>
+									<?php endif; ?>
+									<?php foreach ($f['options'] as $o): ?>
+									<option value="<?= $o['value']; ?>"<?= $o['selected'] ? ' selected' : ''; ?>><?= $o['label']; ?></option>
+									<?php endforeach; ?>
+								</select>
+								</div>
+							<?php elseif ('datepicker' == $f['type']): ?>
+								<div class="form-group">
+								<input class="filter datepicker" type="text" name="<?= $f['name']; ?>" value="<?= $f['value']; ?>" placeholder="<?= ($f['placeholder'] ?: $f['label']) ?>" data-timepicker="false" data-datepicker="true" data-formatdate="<?= $f['formatdate']; ?>" data-mindate="<?= $f['mindate']; ?>" data-maxdate="<?= $f['maxdate']; ?>"  data-reset="true" />
+								</div>
+							<?php else: ?>
+								<div class="form-group <?= $f['name']=='search' ? 'form-shrink input-group' : '' ?>">
+									<input class="filter" type="text" name="<?= $f['name']; ?>" value="<?= $f['value']; ?>" placeholder="<?= ($f['placeholder'] ?: $f['label']) ?>" />
+									<?php if ($f['name']=='search'): ?>
+									<button type="submit" class="squared btn-bg-none"><i class="fal fa-search"></i></button>
+									<?php endif ?>
+								</div>
+							<?php endif; ?>
+			  		<?php endforeach; ?>
+			  	</div>
+		    </div>
+		</form>
+  <?php endif; ?>
+
+  <?php if (empty($this->items)): ?>
+    <p class="empty"><?= $this->empty; ?></p>
+  <?php else: ?>
+  	
+	  <div class="events" id="events">
+	    <?= implode('', $this->items); ?>
+		</div>
+	  <?= $this->pagination; ?>
+
+  <?php endif; ?>
+
+
+<?php $this->endblock(); ?>

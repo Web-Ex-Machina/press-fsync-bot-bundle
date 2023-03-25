@@ -21,6 +21,7 @@ use Inn42\Rawg;
 use WEM\PressFsyncBotBundle\Model\DiscordEvent;
 use WEM\PressFsyncBotBundle\Model\DiscordMessage;
 use WEM\PressFsyncBotBundle\Model\Task;
+use WEM\PressFsyncBotBundle\Model\TwitchEvent;
 use WEM\PressFsyncBotBundle\Model\UserConfig;
 
 /**
@@ -80,26 +81,36 @@ class GeneratePageListener extends \Controller
         while ($objConfigs->next()) {
             $username = $encryptionService->decrypt($objConfigs->twitchUsername);
 
-            $arrConfigs[$username] = [
-                'label' => $objConfigs->username,
-                'url' => 'https://www.twitch.tv/' . $username,
-                'intro' => $objConfigs->syncTwitchScheduleWithDiscordMessagesFormat,
-                'color' => $objConfigs->syncTwitchScheduleWithDiscordMessagesColor,
-                'events_servers' => deserialize($objConfigs->syncTwitchScheduleWithDiscordEventsServers),
-                'events_messages' => deserialize($objConfigs->syncTwitchScheduleWithDiscordMessagesRecipients),
-                'broadcaster_id' => $encryptionService->decrypt($objConfigs->twitchBroadcasterId)
-            ];
-
-            if ($objConfigs->syncTwitchScheduleWithDiscordEventsFallbackPicture && $objFile = FilesModel::findByUuid($objConfigs->syncTwitchScheduleWithDiscordEventsFallbackPicture)) {
-                $arrConfigs[$username]['default_picture'] = $objFile->path;
-            }
-
-            if ($objConfigs->syncTwitchScheduleWithDiscordMessagesThumbnail && $objFile = FilesModel::findByUuid($objConfigs->syncTwitchScheduleWithDiscordMessagesThumbnail)) {
-                $arrConfigs[$username]['avatar'] = $objFile->path;
-            }
+            $arrConfigs[$username] = $this->parseConfig($objConfigs->current());
         }
 
         return $arrConfigs;
+    }
+
+    protected function parseConfig($objConfig)
+    {
+        $encryptionService = System::getContainer()->get('plenta.encryption');
+
+        $arrConfig = [
+            'id' => $objConfig->id,
+            'label' => $objConfig->username,
+            'url' => 'https://www.twitch.tv/' . $encryptionService->decrypt($objConfig->twitchUsername),
+            'intro' => $objConfig->syncTwitchScheduleWithDiscordMessagesFormat,
+            'color' => $objConfig->syncTwitchScheduleWithDiscordMessagesColor,
+            'events_servers' => deserialize($objConfig->syncTwitchScheduleWithDiscordEventsServers),
+            'events_messages' => deserialize($objConfig->syncTwitchScheduleWithDiscordMessagesRecipients),
+            'broadcaster_id' => $encryptionService->decrypt($objConfig->twitchBroadcasterId)
+        ];
+
+        if ($objConfig->syncTwitchScheduleWithDiscordEventsFallbackPicture && $objFile = FilesModel::findByUuid($objConfig->syncTwitchScheduleWithDiscordEventsFallbackPicture)) {
+            $arrConfig['default_picture'] = $objFile->path;
+        }
+
+        if ($objConfig->syncTwitchScheduleWithDiscordMessagesThumbnail && $objFile = FilesModel::findByUuid($objConfig->syncTwitchScheduleWithDiscordMessagesThumbnail)) {
+            $arrConfig['avatar'] = $objFile->path;
+        }
+
+        return $arrConfig;
     }
 
     public function getYtChannels()
@@ -111,11 +122,6 @@ class GeneratePageListener extends \Controller
     {
         global $objPage;
 
-        $encryptionService = System::getContainer()->get('plenta.encryption');
-        $this->strTwitchClientId = $encryptionService->decrypt(Config::get('pfsTwitchClientId'));
-        $this->strTwitchClientSecret = $encryptionService->decrypt(Config::get('pfsTwitchClientSecret'));
-        $this->strDiscordToken = $encryptionService->decrypt(Config::get('pfsDiscordToken'));
-
         if ($objPage->alias != "api") {
             return;
         }
@@ -124,8 +130,10 @@ class GeneratePageListener extends \Controller
             return;
         }
 
-        $arrTwitchChannels = $this->getTwitchChannels();
-        $arrYtChannels = $this->getYtChannels();
+        $encryptionService = System::getContainer()->get('plenta.encryption');
+        $this->strTwitchClientId = $encryptionService->decrypt(Config::get('pfsTwitchClientId'));
+        $this->strTwitchClientSecret = $encryptionService->decrypt(Config::get('pfsTwitchClientSecret'));
+        $this->strDiscordToken = $encryptionService->decrypt(Config::get('pfsDiscordToken'));
 
         switch (Input::get('auto_item')) {
             case 'checklive':
@@ -172,229 +180,322 @@ class GeneratePageListener extends \Controller
             break;
 
             case 'syncschedule':
-                // Story board of the tasks to plan
-                // Retrieve all Discord events
-                // For each Twitch channel, retrieve the 3 next streams planned
-                // Check if the Twitch event is in the database and in the Discord events
-                // --
-                // Sync Database according to Twitch :
-                // - Add new events
-                // - Update existing events
-                // - Delete existing events who are not in the database anymore
-                // --
-                // Add task to create Discord Event if it exists in Database but not in Discord
-                // Add task to update Discord Event if it exists in Database and in Discord and it should be updated
-                // Add task to delete Discord Event if it exists in Discord but not in Database
-                // --
-                // Format the Discord message, according to the next streams
-                // Add Task to create/update Discord message
-
-                foreach ($arrTwitchChannels as $t) {
-                    // First, get the next events from the Twitch schedule
-                    $r = $this->makeTwitchRequest('helix/schedule', ['broadcaster_id' => $t['broadcaster_id'], 'start_time' => date('Y-m-d\TH:i:sP'), 'first' => 3, 'utc_offset' => 60]);
-
-                    $arrTwitchEventsIds = [];
-                    $hasChanges = false;
-
-                    // Skip if there is nothing scheduled
-                    if (empty($r['data']['segments'])) {
-                        $strSql = 'user = "'.$t['broadcaster_id'].'"';
-
-                        $objDatabaseEvents = DiscordEvent::findBy([$strSql], null);
-                        if ($objDatabaseEvents && 0 < $objDatabaseEvents->count()) {
-                            while ($objDatabaseEvents->next()) {
-                                if (!$objDatabaseEvents->discord_event) {
-                                    continue;
-                                }
-
-                                foreach ($t['events_servers'] as $s) {
-                                    $this->addTask(
-                                        "discord",
-                                        "delete_event",
-                                        sprintf('guilds/%s/scheduled-events/%s', $s, $objDatabaseEvents->discord_event),
-                                        [],
-                                        'DELETE'
-                                    );
-                                }
-
-                                $hasChanges = true;
-                            }
-                        }
-
-                        continue;
-                    }
-
-                    // Loop on the events
-                    $arrEventsForMsg = [];
-                    foreach ($r['data']['segments'] as $event) {
-                        if (null !== $event['canceled_until']) {
-                            continue;
-                        }
-
-                        // Retrieve the event
-                        $objEvent = DiscordEvent::findOneBy(['twitch_event="'.$event['id'].'"'], null);
-                        $data = $event;
-                        $data['title'] = addslashes($event['title']);
-                        $data['url'] = $t['url'];
-                        $data['user'] = $t['broadcaster_id'];
-
-                        if ($t['default_picture']) {
-                            $data['image'] = $t['default_picture'];
-                        }
-
-                        // Create task if it does not exists in Database
-                        foreach ($t['events_servers'] as $s) {
-                            if (!$objEvent) {
-                                $this->addTask(
-                                    "discord",
-                                    "add_event",
-                                    sprintf('guilds/%s/scheduled-events', $s),
-                                    $data,
-                                    'POST'
-                                );
-
-                                $hasChanges = true;
-                            }
-                            // Create task if it does exists in Database but it should be updated
-                            elseif ($this->shouldEventBeUpdatedOnDiscord($data, $objEvent)) {
-                                $this->addTask(
-                                    "discord",
-                                    "update_event",
-                                    sprintf('guilds/%s/scheduled-events/%s', $s, $objEvent->discord_event),
-                                    $data,
-                                    'PATCH'
-                                );
-
-                                $hasChanges = true;
-                            }
-                        }
-
-                        // Store Twitch events IDs for later
-                        $arrTwitchEventsIds[] = $event['id'];
-
-                        $objStartAt = \DateTime::createFromFormat(DATE_ATOM, $event['start_time'], new \DateTimeZone('UTC'));
-                        $objStartAt->setTimezone(new \DateTimeZone('Europe/Paris'));
-                        // $objEndAt = \DateTime::createFromFormat(DATE_ATOM, $event['end_time']);
-                        $arrEventsForMsg[] = "Le " . $objStartAt->format('d/m/Y à H:i') . " - " . $event['title'];
-                    }
-
-                    // Prepare message
-                    $arrEmbeds = [];
-                    $arrEmbeds[] = [
-                        'type' => 'rich',
-                        'title' => $t['intro'],
-                        'description' => !empty($arrEventsForMsg) ? implode("\n", $arrEventsForMsg) : 'Pas de streams prévus',
-                        'url' => $t['url'],
-                        'author' => [
-                            'name' => $t['label'],
-                            "url" => $t['url'],
-                        ],
-                        'timestamp' => date("c"),
-                        'color' => hexdec($t['color'] ?: "FFFFFF"),
-                        'thumbnail' => [
-                            'url' => \Environment::get('base') . $t['avatar']
-                        ]
-                    ];
-
-                    // Find events to delete
-                    $strSql = 'user = "'.$t['broadcaster_id'].'"';
-                    if (!empty($arrTwitchEventsIds)) {
-                        $strSql .= ' AND twitch_event NOT IN("' . implode('","', $arrTwitchEventsIds) . '")';
-                    }
-
-                    $objDatabaseEvents = DiscordEvent::findBy([$strSql], null);
-                    if ($objDatabaseEvents && 0 < $objDatabaseEvents->count()) {
-                        while ($objDatabaseEvents->next()) {
-                            if (!$objDatabaseEvents->discord_event) {
-                                continue;
-                            }
-
-                            foreach ($t['events_servers'] as $s) {
-                                $this->addTask(
-                                    "discord",
-                                    "delete_event",
-                                    sprintf('guilds/%s/scheduled-events/%s', $s, $objDatabaseEvents->discord_event),
-                                    [],
-                                    'DELETE'
-                                );
-                            }
-
-                            $hasChanges = true;
-                        }
-                    }
-
-                    // Check if there is Discord events to delete because there was an issue before
-                    foreach ($t['events_servers'] as $s) {
-                        // Litle cache system so we do not repeat unecessary requests
-                        if (!array_key_exists($s, $this->arrDiscordCache['events_servers'])) {
-                            $objDiscordEvents = $this->makeDiscordRequest(
-                                sprintf('guilds/%s/scheduled-events', $s),
-                                [],
-                                'GET'
-                            );
-
-                            $this->arrDiscordCache['events_servers'][$s] = $objDiscordEvents;
-                        } else {
-                            $objDiscordEvents = $this->arrDiscordCache['events_servers'][$s];
-                        }
-
-                        if ($objDiscordEvents) {
-                            foreach ($objDiscordEvents as $e) {
-                                $objDiscordEvent = DiscordEvent::findOneBy(['discord_event = '.$e['id']], null);
-                                if (!$objDiscordEvent) {
-                                    $this->addTask(
-                                        "discord",
-                                        "delete_event",
-                                        sprintf('guilds/%s/scheduled-events/%s', $s, $e['id']),
-                                        [],
-                                        'DELETE'
-                                    );
-                                }
-                            }
-                        }
-                    }
-
-
-                    // If we detect changes between Twitch schedule & Database, add a task to also update the Discord messages
-                    if (!empty($t['events_messages'])) {
-                        foreach ($t['events_messages'] as $c) {
-                            // Try to find a message id in database
-                            $objMessage = DiscordMessage::findOneBy(['server='.$c['key'].' AND channel='.$c['value'].' AND user='.$t['broadcaster_id']], null);
-
-                            if ($objMessage && $objMessage->events !== serialize($arrTwitchEventsIds)) {
-                                $this->addTask(
-                                    "discord",
-                                    "update_message",
-                                    sprintf('channels/%s/messages/%s', $c['value'], $objMessage->message),
-                                    ['embeds' => $arrEmbeds, 'flags' => 2, 'user' => $t['broadcaster_id'], 'server' => $c['key'], 'events' => $arrTwitchEventsIds],
-                                    'PATCH'
-                                );
-                            } elseif (!$objMessage || !$objMessage->message) {
-                                $this->addTask(
-                                    "discord",
-                                    "add_message",
-                                    sprintf('channels/%s/messages', $c['value']),
-                                    ['embeds' => $arrEmbeds, 'flags' => 2, 'user' => $t['broadcaster_id'], 'server' => $c['key'], 'events' => $arrTwitchEventsIds],
-                                    'POST'
-                                );
-                            }
-                        }
-                    }
-                }
+                $this->syncTwitchEvents();
+                $this->syncDiscordEvents();
+                $this->syncDiscordMessages();
             break;
         }
     }
 
-    protected function shouldEventBeUpdatedOnDiscord($event, $objEvent)
+    // Story board of the tasks to plan
+    // Retrieve all Twitch events
+    // For each Twitch channel, retrieve all the streams planned within the next month
+    // Check if the Twitch event is in the database
+    protected function syncTwitchEvents()
     {
+        $arrTwitchChannels = $this->getTwitchChannels();
+        $arrEvents = [];
+
+        foreach ($arrTwitchChannels as $t) {
+            // First, get the next events from the Twitch schedule
+            $r = $this->makeTwitchRequest(
+                'helix/schedule',
+                [
+                    'broadcaster_id' => $t['broadcaster_id'],
+                    'start_time' => date('Y-m-d\TH:i:sP'),
+                    'utc_offset' => 60
+                ]
+            );
+
+            // Loop on the events
+            foreach ($r['data']['segments'] as $event) {
+                // Skip if event is in one month or after
+                if ($this->getTimestampFromTwitchDate($event['start_time']) >= strtotime("+1 month")) {
+                    continue;
+                }
+
+                if (null !== $event['canceled_until']) {
+                    continue;
+                }
+
+                // Sync the event in the database
+                $objEvent = $this->syncTwitchEvent($event, $t);
+                $arrEvents[] = $objEvent->id;
+            }
+        }
+
+        // Finally, remove events that have been removed from Twitch
+        $strSql = 'id NOT IN(' . implode(',', $arrEvents) . ')';
+        $objDatabaseEvents = TwitchEvent::findItems([$strSql], null);
+        if ($objDatabaseEvents && 0 < $objDatabaseEvents->count()) {
+            while ($objDatabaseEvents->next()) {
+                $objDatabaseEvents->delete();
+            }
+        }
+    }
+
+    // Sync Database according to Twitch :
+    // Add task to create Discord Event if it exists in Database but not in Discord
+    // Add task to update Discord Event if it exists in Database and in Discord and it should be updated
+    // Add task to delete Discord Event if it exists in Discord but not in Database
+    protected function syncDiscordEvents()
+    {
+        // Retrieve the events
+        $objEvents = TwitchEvent::findItems(['start_time_after' => time(), 'start_time_before' => strtotime("+1 week")]);
+
+        // Nothing to do, skip
+        if (!$objEvents || 0 === $objEvents) {
+            return;
+        }
+
+        // Store the events we add
+        $arrServers = [];
+
+        // Check if we must add/update items inside Discord
+        while ($objEvents->next()) {
+            // Retrieve event config
+            $arrConfig = $this->parseConfig($objEvents->getRelated('user'));
+
+            // Retrieve the Discord event
+            $objDiscordEvent = DiscordEvent::findOneBy(['twitch_event="'.$objEvents->id.'"'], null);
+            $data['event'] = $objEvents->id;
+            $data['config'] = $arrConfig;
+
+            // Create task if it does not exists in Database
+            foreach ($arrConfig['events_servers'] as $s) {
+                if (!$objDiscordEvent) {
+                    $this->addTask(
+                        "discord",
+                        "add_event",
+                        sprintf('guilds/%s/scheduled-events', $s),
+                        $data,
+                        'POST'
+                    );
+                }
+                // Create task if it does exists in Database but it should be updated
+                elseif ($this->shouldEventBeUpdatedOnDiscord($data, $objDiscordEvent)) {
+                    $this->addTask(
+                        "discord",
+                        "update_event",
+                        sprintf('guilds/%s/scheduled-events/%s', $s, $objDiscordEvent->discord_event),
+                        $data,
+                        'PATCH'
+                    );
+                }
+
+                $arrServers[$s][] = $objEvents->id;
+            }
+        }
+
+        // Then delete events from Discord who:
+        // 1/ are in Discord servers but not in the database anymore
+        // 2/ are in Discord servers but are marked as canceled in the database
+        // 3/ are in the database but are not in the listed events added by the loop above (we add a task if they have a Discord Event ID)
+        if (!empty($arrServers)) {
+            foreach ($arrServers as $s => $events) {
+                // Retrieve Discord events for this server
+                // Litle cache system so we do not repeat unecessary requests
+                if (!array_key_exists($s, $this->arrDiscordCache['events_servers'])) {
+                    $objDiscordEvents = $this->makeDiscordRequest(
+                        sprintf('guilds/%s/scheduled-events', $s),
+                        [],
+                        'GET'
+                    );
+
+                    $this->arrDiscordCache['events_servers'][$s] = $objDiscordEvents;
+                } else {
+                    $objDiscordEvents = $this->arrDiscordCache['events_servers'][$s];
+                }
+
+                // 1 & 2
+                if ($objDiscordEvents) {
+                    foreach ($objDiscordEvents as $e) {
+                        // 1
+                        if (0 === DiscordEvent::countItems(['discord_event' => $e['id']])) {
+                            $this->addTask(
+                                "discord",
+                                "delete_event",
+                                sprintf('guilds/%s/scheduled-events/%s', $s, $e['id']),
+                                [],
+                                'DELETE'
+                            );
+
+                            continue;
+                        }
+
+                        // 2
+                        $objEvent = DiscordEvent::findItems(['discord_event' => $e['id']], 1);
+                        $objTwitchEvent = $objEvent->getRelated('twitch_event');
+
+                        if (!$objTwitchEvent || null !== $objTwitchEvent->canceled_until) {
+                            $this->addTask(
+                                "discord",
+                                "delete_event",
+                                sprintf('guilds/%s/scheduled-events/%s', $s, $e['id']),
+                                [],
+                                'DELETE'
+                            );
+                        }
+                    }
+                }
+
+                // 3
+                $strSql = 'twitch_event NOT IN(' . implode(',', $events) . ')';
+                $objDatabaseEvents = DiscordEvent::findItems([$strSql], null);
+                if ($objDatabaseEvents && 0 < $objDatabaseEvents->count()) {
+                    while ($objDatabaseEvents->next()) {
+                        if (!$objDatabaseEvents->discord_event) {
+                            continue;
+                        }
+
+                        foreach ($t['events_servers'] as $s) {
+                            $this->addTask(
+                                "discord",
+                                "delete_event",
+                                sprintf('guilds/%s/scheduled-events/%s', $s, $objDatabaseEvents->discord_event),
+                                [],
+                                'DELETE'
+                            );
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Format the Discord message, according to the next streams
+    // Add Task to create/update Discord message
+    protected function syncDiscordMessages()
+    {
+        // Retrieve the events
+        $objEvents = TwitchEvent::findItems(['start_time_after' => time()]);
+
+        // Nothing to do, skip
+        if (!$objEvents || 0 === $objEvents) {
+            return;
+        }
+
+        $encryptionService = System::getContainer()->get('plenta.encryption');
+        $arrConfigs = $this->getTwitchChannels();
+        $arrEventsForMsg = [];
+        $arrEventsIds = [];
+
+
+        // Store config & parse events
+        while ($objEvents->next()) {
+            $username = $encryptionService->decrypt($objEvents->getRelated('user')->twitchUsername);
+
+            // Store the config for later
+            $arrEventsForMsg[$username][] = "Le " . date(Config::get('datimFormat'), $objEvents->start_time) . " - " . $objEvents->title;
+            $arrEventsIds[$username][] = $objEvents->id;
+        }
+
+        // For each config, prepare embed
+        foreach ($arrConfigs as $user => $arrConfig) {
+            // Prepare message
+            $arrEmbeds = [];
+            $arrEmbeds[] = [
+                'type' => 'rich',
+                'title' => $arrConfig['intro'],
+                'description' => !empty($arrEventsForMsg[$user]) ? implode("\n", $arrEventsForMsg[$user]) : 'Pas de streams prévus',
+                'url' => $arrConfig['url'],
+                'author' => [
+                    'name' => $arrConfig['label'],
+                    "url" => $arrConfig['url'],
+                ],
+                //'timestamp' => date("c"),
+                'color' => hexdec($arrConfig['color'] ?: "FFFFFF"),
+                'thumbnail' => [
+                    'url' => \Environment::get('base') . $arrConfig['avatar']
+                ]
+            ];
+
+            // If we detect changes between Twitch schedule & Database, add a task to also update the Discord messages
+            if (!empty($arrConfig['events_messages'])) {
+                foreach ($arrConfig['events_messages'] as $arrChannel) {
+                    // Try to find a message id in database
+                    $objMessage = DiscordMessage::findOneBy(['server='.$arrChannel['key'].' AND channel='.$arrChannel['value'].' AND user='.$arrConfig['broadcaster_id']], null);
+
+                    if ($objMessage && $objMessage->events !== serialize($arrEventsIds[$user])) {
+                        $this->addTask(
+                            "discord",
+                            "update_message",
+                            sprintf('channels/%s/messages/%s', $arrChannel['value'], $objMessage->message),
+                            ['embeds' => $arrEmbeds, 'flags' => 2, 'user' => $arrConfig['broadcaster_id'], 'server' => $arrChannel['key'], 'events' => $arrEventsIds[$user]],
+                            'PATCH'
+                        );
+                    } elseif (!$objMessage || !$objMessage->message) {
+                        $this->addTask(
+                            "discord",
+                            "add_message",
+                            sprintf('channels/%s/messages', $arrChannel['value']),
+                            ['embeds' => $arrEmbeds, 'flags' => 2, 'user' => $arrConfig['broadcaster_id'], 'server' => $arrChannel['key'], 'events' => $arrEventsIds[$user]],
+                            'POST'
+                        );
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Sync a Twitch event in the Database
+     * @param  array $event Twitch event from API
+     * @param  array $t     User config from database
+     * @return TwitchEvent
+     */
+    protected function syncTwitchEvent($event, $t)
+    {
+        try {
+            $objEvent = TwitchEvent::findItems(['twitch_event' => $event['id']], 1);
+
+            if (!$objEvent) {
+                $objEvent = new TwitchEvent();
+            }
+
+            $objEvent->tstamp = time();
+            $objEvent->twitch_event = $event['id'];
+            $objEvent->user = $t['id'];
+            $objEvent->start_time = $this->getTimestampFromTwitchDate($event['start_time']);
+            $objEvent->end_time = $this->getTimestampFromTwitchDate($event['end_time']);
+            $objEvent->title = $event['title'];
+            $objEvent->is_recurring = $event['is_recurring'] ? 1 : '';
+            $objEvent->canceled_until = $this->getTimestampFromTwitchDate($event['canceled_until']);
+            $objEvent->category_id = $event['category']['id'] ?: 0;
+            $objEvent->category_name = $event['category']['name'] ?: '';
+            $objEvent->save();
+
+            return $objEvent;
+        } catch (\Exception $e) {
+            throw $e;
+        }
+    }
+
+    protected function shouldEventBeUpdatedOnDiscord($event, $objDiscordEvent)
+    {
+        $objTwitchEvent = TwitchEvent::findByPk($event['event']);
+
         // If the title has changed, go
-        $title = $event['title'] ?: $event['category']['name'];
-        if (stripcslashes($title) !== $objEvent->title) {
+        $title = $objTwitchEvent->title ?: $objTwitchEvent->category_name;
+        if ($objTwitchEvent->title !== $objDiscordEvent->discord_event_name) {
             return true;
         }
 
-        // If the date has changed, go
-        if ($event['start_time'] !== $objEvent->start_time) {
+        if (date('c', $objTwitchEvent->start_time) !== $objDiscordEvent->discord_event_scheduled_start_time) {
+            return true;
+        }
+
+        if (date('c', $objTwitchEvent->end_time) !== $objDiscordEvent->discord_event_scheduled_end_time) {
+            return true;
+        }
+
+        // retrieve config and format url
+        $arrConfig = $this->parseConfig($objTwitchEvent->getRelated('user'));
+        if ($arrConfig['url'] !== $objDiscordEvent->discord_event_entity_metadata_location) {
+            return true;
+        }
+
+        if ($objTwitchEvent->category_name !== $objDiscordEvent->discord_event_category_name) {
             return true;
         }
 
@@ -409,6 +510,21 @@ class GeneratePageListener extends \Controller
 
     protected function addTask($strType, $strTask, $strEndpoint, $arrData, $strMethod)
     {
+        // Add a way to skip the task system for debug purposes
+        if ("1" === Input::get('debug')) {
+            echo sprintf(
+                'Add Task %s - %s - %s - %s - %s',
+                $strType,
+                $strTask,
+                $strEndpoint,
+                implode(' | ', $arrData),
+                $strMethod
+            );
+            echo '<hr />';
+
+            return;
+        }
+
         if ($this->shouldTaskBeAdded($strType, $strTask, $strEndpoint, $arrData, $strMethod)) {
             $objTask = new Task();
             $objTask->created_at = microtime(true);
@@ -435,13 +551,39 @@ class GeneratePageListener extends \Controller
                 switch ($objTask->task) {
                     case 'add_event':
                     case 'update_event':
+                        $objEvent = TwitchEvent::findByPk($data['event']);
+                        $intConfig = $data['config']['id'];
+
+                        $data['title'] = $objEvent->title;
+                        $data['url'] = $data['config']['url'];
+                        $data['user'] = $data['config']['broadcaster_id'];
+                        $data['start_time'] = date('c', $objEvent->start_time);
+                        $data['end_time'] = date('c', $objEvent->end_time);
+                        $data['category']['name'] = $objEvent->category_name;
+
+                        if ($data['config']['default_picture']) {
+                            $data['image'] = $data['config']['default_picture'];
+                        }
+
+                        unset($data['event']);
+                        unset($data['config']);
+
+                        $data = $this->parseTwitchEvent($data);
+
                         $objResult = $this->makeDiscordRequest(
                             $objTask->endpoint,
-                            $this->parseTwitchEvent($data),
+                            $data,
                             $method
                         );
 
                         if (10070 === $objResult['code']) {
+                            break;
+                        }
+
+                        if (is_array($objResult['scheduled_end_time']) && "Cannot schedule event in the past." === $objResult['scheduled_end_time'][0]) {
+                            $objEvent->delete();
+                            $objTask->delete();
+                            $blnSuccess = false;
                             break;
                         }
 
@@ -452,22 +594,22 @@ class GeneratePageListener extends \Controller
                             break;
                         }
 
-                        $objEvent = DiscordEvent::findOneBy('discord_event', $objResult['id']);
+                        $objDiscordEvent = DiscordEvent::findOneBy('discord_event', $objResult['id']);
 
-                        if (!$objEvent) {
-                            $objEvent = new DiscordEvent();
+                        if (!$objDiscordEvent) {
+                            $objDiscordEvent = new DiscordEvent();
                         }
 
-                        $objEvent->discord_event = $objResult['id'];
-                        $objEvent->tstamp = time();
-                        $objEvent->twitch_event = $data['id'];
-                        $objEvent->start_time = $data['start_time'];
-                        $objEvent->end_time = $data['end_time'];
-                        $objEvent->title = $data['title'];
-                        $objEvent->category_id = $data['category']['id'] ?: 0;
-                        $objEvent->category_name = $data['category']['name'] ?: '';
-                        $objEvent->user = $data['user'];
-                        $objEvent->save();
+                        $objDiscordEvent->tstamp = time();
+                        $objDiscordEvent->discord_event = $objResult['id'];
+                        $objDiscordEvent->twitch_event = $objEvent->id;
+                        $objDiscordEvent->user = $intConfig;
+                        $objDiscordEvent->discord_event_name = $data['name'];
+                        $objDiscordEvent->discord_event_scheduled_start_time = $data['scheduled_start_time'];
+                        $objDiscordEvent->discord_event_scheduled_end_time = $data['scheduled_end_time'];
+                        $objDiscordEvent->discord_event_entity_metadata_location = $data['entity_metadata']['location'];
+                        $objDiscordEvent->discord_event_category_name = $objEvent->category_name ?: '';
+                        $objDiscordEvent->save();
                     break;
 
                     break;
@@ -782,5 +924,21 @@ class GeneratePageListener extends \Controller
         $objFile->close();
 
         return $objFile;
+    }
+
+    /**
+     * Convert a DATE_ATOM format into a timestamp at the right timezone
+     * @param  string $date
+     * @return int
+     */
+    protected function getTimestampFromTwitchDate($date)
+    {
+        if (!$date) {
+            return null;
+        }
+
+        $objDate = \DateTime::createFromFormat(DATE_ATOM, $date, new \DateTimeZone('UTC'));
+        $objDate->setTimezone(new \DateTimeZone('Europe/Paris'));
+        return $objDate->getTimestamp();
     }
 }

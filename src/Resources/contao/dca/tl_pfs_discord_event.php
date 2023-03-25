@@ -32,7 +32,7 @@ $GLOBALS['TL_DCA']['tl_pfs_discord_event'] = [
             'panelLayout' => 'filter;search,limit',
         ],
         'label' => [
-            'fields' => ['title', 'category_name', 'start_time'],
+            'fields' => ['user', 'discord_event', 'twitch_event'],
             'format' => '%s [%s] - %s',
             'showColumns' => true,
         ],
@@ -63,7 +63,7 @@ $GLOBALS['TL_DCA']['tl_pfs_discord_event'] = [
     // Palettes
     'palettes' => [
         'default' => '
-            {global_legend},user,discord_event,twitch_event,start_time,end_time,title,category_id,category_name
+            {global_legend},user,twitch_event,discord_event
         ',
     ],
 
@@ -73,39 +73,47 @@ $GLOBALS['TL_DCA']['tl_pfs_discord_event'] = [
             'inputType' => 'text',
             'sql' => 'int(10) unsigned NOT NULL auto_increment',
         ],
+        'tstamp' => [
+            'sql' => "int(10) unsigned NOT NULL default '0'",
+        ],
         'user' => [
-            'search' => true,
-            'inputType' => 'text',
-            'sql' => 'text NULL',
+            'inputType' => 'select',
+            'foreignKey' => 'tl_pfs_user_config.username',
+            'sql' => "int(10) unsigned NOT NULL default '0'",
+            'relation' => ['type' => 'belongsTo', 'load' => 'lazy'],
+        ],
+        'twitch_event' => [
+            'inputType' => 'select',
+            'foreignKey' => 'tl_pfs_twitch_event.title',
+            'sql' => "int(10) unsigned NOT NULL default '0'",
+            'relation' => ['type' => 'belongsTo', 'load' => 'lazy'],
         ],
         'discord_event' => [
             'search' => true,
             'inputType' => 'text',
             'sql' => 'text NULL',
         ],
-        'twitch_event' => [
+        'discord_event_name' => [
             'search' => true,
             'inputType' => 'text',
             'sql' => 'text NULL',
         ],
-        'start_time' => [
-            'inputType' => 'text',
-            'sql' => 'text NULL',
-        ],
-        'end_time' => [
-            'inputType' => 'text',
-            'sql' => 'text NULL',
-        ],
-        'title' => [
+        'discord_event_scheduled_start_time' => [
             'search' => true,
             'inputType' => 'text',
             'sql' => 'text NULL',
         ],
-        'category_id' => [
+        'discord_event_scheduled_end_time' => [
+            'search' => true,
             'inputType' => 'text',
-            'sql' => 'int(10) unsigned NOT NULL default 0',
+            'sql' => 'text NULL',
         ],
-        'category_name' => [
+        'discord_event_entity_metadata_location' => [
+            'search' => true,
+            'inputType' => 'text',
+            'sql' => 'text NULL',
+        ],
+        'discord_event_category_name' => [
             'search' => true,
             'inputType' => 'text',
             'sql' => 'text NULL',

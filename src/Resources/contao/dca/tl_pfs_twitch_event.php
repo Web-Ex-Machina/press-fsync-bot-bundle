@@ -12,10 +12,10 @@ declare(strict_types=1);
  * @link     https://github.com/Web-Ex-Machina/press-fsync-bot-bundle/
  */
 
-$GLOBALS['TL_DCA']['tl_pfs_task'] = [
+$GLOBALS['TL_DCA']['tl_pfs_twitch_event'] = [
     // Config
     'config' => [
-        'dataContainer' => \Contao\DC_Table::class,
+        'dataContainer' => Contao\DC_Table::class,
         'sql' => [
             'keys' => [
                 'id' => 'primary',
@@ -27,13 +27,13 @@ $GLOBALS['TL_DCA']['tl_pfs_task'] = [
     'list' => [
         'sorting' => [
             'mode' => 1,
-            'fields' => ['type'],
+            'fields' => ['user'],
             'flag' => 1,
             'panelLayout' => 'filter;search,limit',
         ],
         'label' => [
-            'fields' => ['type', 'task', 'endpoint', 'method'],
-            'format' => '[%s] %s / %s / %s',
+            'fields' => ['title', 'category_name', 'start_time'],
+            'format' => '%s [%s] - %s',
             'showColumns' => true,
         ],
         'global_operations' => [
@@ -59,45 +59,66 @@ $GLOBALS['TL_DCA']['tl_pfs_task'] = [
             ],
         ],
     ],
+
+    // Palettes
     'palettes' => [
-        'default' => '{global_legend},created_at,type,task,endpoint,data,method',
+        'default' => '
+            {global_legend},user,twitch_event,start_time,end_time,title,category_id,category_name,is_recurring,canceled_until
+        ',
     ],
+
     // Fields
     'fields' => [
         'id' => [
+            'inputType' => 'text',
             'sql' => 'int(10) unsigned NOT NULL auto_increment',
         ],
         'tstamp' => [
             'sql' => "int(10) unsigned NOT NULL default '0'",
         ],
-        'created_at' => [
-            'inputType' => 'text',
-            'sql' => 'double(13,3) unsigned',
+        'user' => [
+            'inputType' => 'select',
+            'foreignKey' => 'tl_pfs_user_config.username',
+            'sql' => "int(10) unsigned NOT NULL default '0'",
+            'relation' => ['type' => 'belongsTo', 'load' => 'lazy'],
         ],
-        'type' => [
-            'filter' => true,
-            'inputType' => 'text',
-            'sql' => 'text NULL',
-        ],
-        'task' => [
-            'filter' => true,
-            'inputType' => 'text',
-            'sql' => 'text NULL',
-        ],
-        'endpoint' => [
+        'twitch_event' => [
             'search' => true,
             'inputType' => 'text',
             'sql' => 'text NULL',
         ],
-        'data' => [
+        'start_time' => [
+            'inputType' => 'text',
+            'sql' => 'text NULL',
+        ],
+        'end_time' => [
+            'inputType' => 'text',
+            'sql' => 'text NULL',
+        ],
+        'title' => [
             'search' => true,
             'inputType' => 'text',
             'sql' => 'text NULL',
         ],
-        'method' => [
-            'filter' => true,
+        'canceled_until' => [
+            'search' => true,
             'inputType' => 'text',
             'sql' => 'text NULL',
+        ],
+        'category_id' => [
+            'inputType' => 'text',
+            'sql' => 'int(10) unsigned NOT NULL default 0',
+        ],
+        'category_name' => [
+            'search' => true,
+            'inputType' => 'text',
+            'sql' => 'text NULL',
+        ],
+        'is_recurring' => [
+            'filter' => true,
+            'inputType' => 'checkbox',
+            'eval' => ['submitOnChange' => true],
+            'sql' => "char(1) NOT NULL default ''",
         ],
     ],
 ];

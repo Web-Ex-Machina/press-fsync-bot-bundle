@@ -7,21 +7,21 @@ namespace WEM\PressFsyncBotBundle\Model;
 /**
  * Reads and writes items.
  */
-class DiscordEvent extends \WEM\UtilsBundle\Model\Model
+class TwitchEvent extends \WEM\UtilsBundle\Model\Model
 {
     /**
      * Table name.
      *
      * @var string
      */
-    protected static $strTable = 'tl_pfs_discord_event';
+    protected static $strTable = 'tl_pfs_twitch_event';
 
     /**
      * Default order column
      *
      * @var string
      */
-    protected static $strOrderColumn = "tstamp ASC";
+    protected static $strOrderColumn = "start_time ASC";
 
     /**
      * Generic statements format.
@@ -39,12 +39,25 @@ class DiscordEvent extends \WEM\UtilsBundle\Model\Model
             $t = static::$strTable;
 
             switch ($strField) {
-                case 'twitch_events':
+                case 'users':
                     if (!\is_array($varValue)) {
                         $varValue = [$varValue];
                     }
 
-                    $arrColumns[] = sprintf("$t.twitch_event IN(%s)", implode(",", $varValue));
+                    $arrColumns[] = sprintf("$t.user IN(%s)", implode(",", $varValue));
+                break;
+
+                case 'start_time_after':
+                    $arrColumns[] = sprintf("$t.start_time >= %s", $varValue);
+                break;
+
+                case 'start_time_before':
+                    $arrColumns[] = sprintf("$t.start_time <= %s", $varValue);
+                break;
+
+                case 'search':
+                    $strKeywords = implode('|', $varValue);
+                    $arrColumns[] = "($t.title REGEXP '$strKeywords' OR $t.category_name REGEXP '$strKeywords')";
                 break;
 
                 // Load parent
