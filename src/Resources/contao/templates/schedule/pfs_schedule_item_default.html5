@@ -6,6 +6,6 @@
 	<td class="table-list__cell" data-name="date"><?= $this->start_time ?></td>
 	<td class="table-list__cell" data-name="duration"><?= $this->duration ?></td>
 	<td class="table-list__cell" data-name="actions">
-		<a href="<?= $this->url ?>" title="Voir la page de <?= $this->username ?>" target="_blank" class=""><i class="fal fa-eye"></i></a>
+		<a class="btn" href="<?= $this->url ?>" title="Voir la page de <?= $this->username ?>" target="_blank" class=""><i class="fal fa-eye"></i></a>
 	</td>
 </tr>
