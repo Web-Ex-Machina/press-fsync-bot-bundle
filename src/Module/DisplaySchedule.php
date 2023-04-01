@@ -97,7 +97,10 @@ class DisplaySchedule extends Module
 
         // Retrieve filters
         $this->buildFilters();
-        $this->Template->filters = $this->filters;
+
+        if (!Input::get('nofilters')) {
+            $this->Template->filters = $this->filters;
+        }
 
         // Get the total number of items
         $intTotal = TwitchEvent::countItems($this->config);
