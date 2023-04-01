@@ -88,6 +88,10 @@ class DisplaySchedule extends Module
             $this->limit = $this->numberOfItems;
         }
 
+        if (Input::get('nbitems')) {
+            $this->limit = (int) Input::get('nbitems');
+        }
+
         $this->Template->articles = [];
         $this->Template->empty = $GLOBALS['TL_LANG']['PFS']['SCHEDULE']['empty'];
 
