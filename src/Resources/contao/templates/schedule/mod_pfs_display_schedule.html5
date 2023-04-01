@@ -2,6 +2,7 @@
 
 <?php $this->block('content'); ?>
 
+<div class="events__wrapper container ft-0-8-em">
   <?php if ($this->filters): ?>
 		<form action="{{env::request}}" method="GET">
 		    <div class="filters events__filters m-bottom" data-container="events">
@@ -60,6 +61,6 @@
 	  <?= $this->pagination; ?>
 
   <?php endif; ?>
-
+</div>
 
 <?php $this->endblock(); ?>
