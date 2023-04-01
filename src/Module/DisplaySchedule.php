@@ -110,6 +110,10 @@ class DisplaySchedule extends Module
         // Retrieve filters
         $this->buildFilters();
 
+        if ('obs' === Input::get('view')) {
+            $this->generateWidget();
+        }
+
         if (!Input::get('nofilters')) {
             $this->Template->filters = $this->filters;
         }
@@ -163,6 +167,27 @@ class DisplaySchedule extends Module
 
         $this->Template->module_id = $this->id;
         $this->Template->generateWidgetUrl = PageModel::findByPk($objPage->id)->getFrontendUrl('/generateWidgetUrlModal');
+    }
+
+    protected function generateWidget()
+    {
+        $intTotal = TwitchEvent::countItems($this->config);
+
+        if ($intTotal < 1) {
+            die;
+        }
+
+        $objItems = TwitchEvent::findItems($this->config, ($this->limit ?: 0));
+
+        if (null === $objItems) {
+            die;
+        }
+
+        $objTemplate = new \FrontendTemplate('mod_pfs_display_schedule_obs_widget');
+        $this->pfs_schedule_item_template = 'pfs_schedule_item_widget';
+        $objTemplate->items = $this->parseItems($objItems);
+        echo $objTemplate->parse();
+        die;
     }
 
     /**
