@@ -7,6 +7,7 @@ namespace WEM\PressFsyncBotBundle\Module;
 use Contao\Config;
 use Contao\Module;
 use Contao\Input;
+use Contao\PageModel;
 use Contao\System;
 use ContaoInput;
 use Patchwork\Utf8;
@@ -80,6 +81,13 @@ class DisplaySchedule extends Module
      */
     protected function compile()
     {
+        if ('generateWidgetUrlModal' === Input::get('auto_item')) {
+            $objTemplate = new \FrontendTemplate('mod_pfs_modal_generate_widget');
+            echo $objTemplate->parse();
+            die;
+        }
+
+        global $objPage;
         $this->limit = null;
         $this->offset = (int) $this->skipFirst;
 
@@ -154,6 +162,7 @@ class DisplaySchedule extends Module
         }
 
         $this->Template->module_id = $this->id;
+        $this->Template->generateWidgetUrl = PageModel::findByPk($objPage->id)->getFrontendUrl('/generateWidgetUrlModal');
     }
 
     /**
