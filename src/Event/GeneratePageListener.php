@@ -386,7 +386,7 @@ class GeneratePageListener extends \Controller
             $username = $encryptionService->decrypt($objEvents->getRelated('user')->twitchUsername);
 
             // Store the config for later
-            $arrEventsForMsg[$username][] = date("d/m (H\hm)", $objEvents->start_time) . " - " . $objEvents->title;
+            $arrEventsForMsg[$username][] = date("d/m (H\hi)", $objEvents->start_time) . " - " . $objEvents->title;
             $arrEventsIds[$username][] = $objEvents->id;
         }
 
