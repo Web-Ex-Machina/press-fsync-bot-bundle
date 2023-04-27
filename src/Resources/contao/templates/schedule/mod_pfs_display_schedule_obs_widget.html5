@@ -1,0 +1,6 @@
+<link rel="stylesheet" href="assets/framway_pressf5/build/css/vendor.css">
+<link rel="stylesheet" href="assets/framway_pressf5/build/css/framway.css">
+
+<div class="d-grid cols-2">
+	<?= implode('', $this->items); ?>
+</div>

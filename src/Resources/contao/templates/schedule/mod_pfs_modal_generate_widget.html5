@@ -1,0 +1,49 @@
+<div class="form-group">
+  <label for="widgetNbItems">Nombre d'éléments</label>
+  <input id="widgetNbItems" type="number" name="widgetNbItems" placeholder="Indiquez le nombre d'éléments que vous souhaitez afficher dans le widget" value="4" />
+</div>
+
+<div class="form-group flex-grow">
+  <label for="widgetUrl">URL du widget</label>
+  <div class="flex">
+    <input id="widgetUrl" type="text" name="widgetUrl" class="flex-grow" />
+    <button class="btn-sm copyWidgetUrl"><i class="fa-solid fa-copy"></i></button>
+  </div>
+</div>
+
+<script type="text/javascript">
+	generateWidgetUrl();
+
+	$('#widgetNbItems').bind('change', function() {
+		generateWidgetUrl();
+	});
+
+	$('.copyWidgetUrl').bind('click', function() {
+		copyWidgetUrl();
+	});
+
+	// Function to generate widget URL
+	function generateWidgetUrl()
+	{
+		var strUrl = window.location.protocol + '//' + window.location.hostname + window.location.pathname;
+		strUrl += '?view=obs'; 
+
+		if (0 < $('#widgetNbItems').val()) {
+			strUrl += '&nbitems='+$('#widgetNbItems').val();
+		}
+
+		$('#widgetUrl').val(strUrl);
+	}
+
+	function copyWidgetUrl() {
+	  // Get the text field
+	  var copyText = document.getElementById("widgetUrl");
+
+	  // Select the text field
+	  copyText.select();
+	  copyText.setSelectionRange(0, 99999); // For mobile devices
+
+	   // Copy the text inside the text field
+	  navigator.clipboard.writeText(copyText.value);
+	}
+</script>

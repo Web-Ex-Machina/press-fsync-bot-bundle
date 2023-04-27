@@ -2,10 +2,11 @@
 
 <?php $this->block('content'); ?>
 
-  <?php if ($this->filters): ?>
-		<form action="{{env::request}}" method="GET">
-		    <div class="filters events__filters m-bottom" data-container="events">
-		    	<div class="filters__line line--1 events__filters__line">
+<div class="events__wrapper container ft-0-8-em">
+  	<?php if ($this->filters): ?>
+		<form action="{{env::request}}" method="GET" class="m-right">
+		    <div class="filters events__filters m-bottom-0 " data-container="events">
+		    	<div class="filters__line line--1 events__filters__line m-bottom-0">
 		    		<div class="filters__col col--left">
 			    	<?php foreach ($this->filters as $f): ?>
 							<?php if ('select' == $f['type']): ?>
@@ -36,7 +37,8 @@
 			  	</div>
 		    </div>
 		</form>
-  <?php endif; ?>
+  	<?php endif; ?>
+  	<button class="btn openGenerateWidgetModal">Générer un widget</button>
 
   <?php if (empty($this->items)): ?>
     <p class="empty"><?= $this->empty; ?></p>
@@ -61,5 +63,19 @@
 
   <?php endif; ?>
 
+</div>
+
+<script type="text/javascript">
+	window.addEventListener('load', (event) => {
+		$('.openGenerateWidgetModal').bind('click', function() {
+			var generateWidgetModal = new app.ModalFW({
+	      name : 'generateWidgetModal',
+	      url: '<?= $this->generateWidgetUrl ?>',
+	      blnAutodestroy: true,
+	    });
+	    generateWidgetModal.open();
+		});    
+	}); 
+</script>
 
 <?php $this->endblock(); ?>
