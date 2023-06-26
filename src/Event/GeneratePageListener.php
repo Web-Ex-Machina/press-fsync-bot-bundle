@@ -295,7 +295,7 @@ class GeneratePageListener extends \Controller
             foreach ($arrServers as $s => $events) {
                 // Retrieve Discord events for this server
                 // Litle cache system so we do not repeat unecessary requests
-                if (!array_key_exists($s, $this->arrDiscordCache['events_servers'])) {
+                if (is_array($this->arrDiscordCache['events_servers']) && !array_key_exists($s, $this->arrDiscordCache['events_servers'])) {
                     $objDiscordEvents = $this->makeDiscordRequest(
                         sprintf('guilds/%s/scheduled-events', $s),
                         [],
@@ -341,7 +341,7 @@ class GeneratePageListener extends \Controller
 
                 // 3
                 $strSql = 'twitch_event NOT IN(' . implode(',', $events) . ')';
-                $objDatabaseEvents = DiscordEvent::findItems([$strSql], null);
+                $objDatabaseEvents = DiscordEvent::findBy([$strSql], null);
                 if ($objDatabaseEvents && 0 < $objDatabaseEvents->count()) {
                     while ($objDatabaseEvents->next()) {
                         if (!$objDatabaseEvents->discord_event) {
