@@ -16,8 +16,6 @@ use Contao\System;
 use Haste\Input\Input;
 use Haste\Http\Response\JsonResponse;
 
-use Inn42\Rawg;
-
 use WEM\PressFsyncBotBundle\Model\DiscordEvent;
 use WEM\PressFsyncBotBundle\Model\DiscordMessage;
 use WEM\PressFsyncBotBundle\Model\Task;
@@ -905,7 +903,7 @@ class GeneratePageListener extends \Controller
         }
 
         // Else call Rawg API
-        $arrGame = Rawg::getGame($name);
+        $arrGame = $this->getGame($name);
 
         // If background image
         if (!$arrGame['background_image']) {
@@ -942,7 +940,7 @@ class GeneratePageListener extends \Controller
         return $objDate->getTimestamp();
     }
 
-    public static function getGame($strSlug, $blnDisableCache = false)
+    protected function getGame($strSlug, $blnDisableCache = false)
     {
         $encryptionService = System::getContainer()->get('plenta.encryption');
         $strApiKey = $encryptionService->decrypt(Config::get('pfsRawgApiSecret'));
