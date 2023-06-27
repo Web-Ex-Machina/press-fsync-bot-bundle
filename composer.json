@@ -17,8 +17,7 @@
     },
     "require": {
         "contao/core-bundle": "^4.9",
-        "plenta/contao-encryption": "^2.2",
-        "dimuska139/rawg-sdk-php": "^1.2",
+        "plenta/contao-encryption": "^2.2"
         "webexmachina/contao-utils": "^0.3"
     },
     "autoload":{
