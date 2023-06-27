@@ -37,6 +37,11 @@ $GLOBALS['TL_DCA']['tl_pfs_task'] = [
             'showColumns' => true,
         ],
         'global_operations' => [
+            'debugRawgApi' => [
+                'href'                => 'key=debugRawgApi',
+                'class'               => 'header_css_import',
+                'attributes'          => 'onclick="Backend.getScrollOffset()"'
+            ],
             'all' => [
                 'href' => 'act=select',
                 'class' => 'header_edit_all',

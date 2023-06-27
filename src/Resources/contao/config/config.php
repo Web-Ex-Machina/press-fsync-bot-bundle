@@ -12,6 +12,8 @@ declare(strict_types=1);
  * @link     https://github.com/Web-Ex-Machina/press-fsync-bot-bundle/
  */
 
+use WEM\PressFsyncBotBundle\Backend\RawgCallback;
+
 /*
  * Back end modules
  */
@@ -31,6 +33,7 @@ array_insert($GLOBALS['BE_MOD'], 1, [
         ],
         'press_fsync_tasks' => [
             'tables' => ['tl_pfs_task'],
+            'debugRawgApi' => array(RawgCallback::class, 'debugRawgApi'),
         ],
     ],
 ]);
