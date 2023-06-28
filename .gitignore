@@ -21,3 +21,10 @@ nbproject/
 sftp-config*
 *.sublime-*
 .php_cs*
+
+# Docker files
+docker/.env
+docker/web/bot_*
+docker/files-upload
+docker/database
+docker/docker-compose.yml
