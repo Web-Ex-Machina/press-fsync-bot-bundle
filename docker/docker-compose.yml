@@ -1,0 +1,62 @@
+version: '3.8'
+services:
+  syncrobot-php:
+    build:
+      context: web
+      args:
+        CONTAO_USER: ${CONTAO_USER}
+        CONTAO_USER_PWD: ${CONTAO_USER_PWD}
+        CONTAO_USER_MAIL: ${CONTAO_USER_MAIL}
+        WORKDIR_CONTAO: ${WORKDIR_CONTAO}
+        PRJ_NAME: ${PRJ_NAME}
+        CONTAO_VERSION: ${CONTAO_VERSION}
+        PHP_VERSION: ${PHP_VERSION}
+        APP_SECRET: ${APP_SECRET}
+        BASE_URL: ${BASE_URL}
+        BUNDLE_VERSION: ${BUNDLE_VERSION}
+    environment:
+      PRJ_NAME: ${PRJ_NAME}
+      CONTAO_USER: ${CONTAO_USER}
+      CONTAO_USER_PWD: ${CONTAO_USER_PWD}
+      CONTAO_USER_MAIL: ${CONTAO_USER_MAIL}
+      WORKDIR_CONTAO: ${WORKDIR_CONTAO}
+      HTTP_HOST: ${BASE_URL}
+      DB_HOST: ${DB_HOST}
+      DB_DATABASE: ${DB_DATABASE}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+
+    container_name: ${COMPOSE_PROJECT_NAME_SHORT}_php_base
+    volumes:
+      - ./files-upload:${WORKDIR_CONTAO}/files
+    networks:
+      - syncrobot-db
+      - traefik
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik"
+      - "traefik.http.routers.syncrobot.rule=Host(`syncrobot-admin.canardpc.com`)"
+      - "traefik.http.routers.syncrobot.entrypoints=web,websecure"
+      - "traefik.http.services.syncrobot.loadbalancer.server.port=80"
+      - "traefik.http.routers.syncrobot.tls=true"
+    ports:
+      - 8888:80
+
+
+  syncrobot-db:
+    image: mysql:5.7
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD} #mandatory
+#      MYSQL_USER: ${DB_USER} #mandatory
+#MYSQL_PASSWORD: ${DB_PASSWORD} #mandatory
+      MYSQL_DATABASE: ${DB_DATABASE} #optionnal, makes mysql create a database on startup
+    container_name: ${COMPOSE_PROJECT_NAME_SHORT}_db_base
+    volumes:
+      - ./database:/var/lib/mysql
+    networks:
+      - syncrobot-db
+
+networks:
+  syncrobot-db:
+  traefik:
+    external: true
