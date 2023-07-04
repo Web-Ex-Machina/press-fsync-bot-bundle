@@ -352,15 +352,13 @@ class GeneratePageListener extends \Controller
                             continue;
                         }
 
-                        foreach ($t['events_servers'] as $s) {
-                            $this->addTask(
-                                "discord",
-                                "delete_event",
-                                sprintf('guilds/%s/scheduled-events/%s', $s, $objDatabaseEvents->discord_event),
-                                [],
-                                'DELETE'
-                            );
-                        }
+                        $this->addTask(
+                            "discord",
+                            "delete_event",
+                            sprintf('guilds/%s/scheduled-events/%s', $s, $objDatabaseEvents->discord_event),
+                            [],
+                            'DELETE'
+                        );
                     }
                 }
             }
@@ -885,7 +883,7 @@ class GeneratePageListener extends \Controller
         $response = json_decode($body, true);
 
         // If we hit the API limit, sleep for a while and relaunch the request
-        if (array_key_exists('retry_after', $response)) {
+        if (is_array($response) && array_key_exists('retry_after', $response)) {
             sleep(round($response['retry_after']));
 
             $response = $this->makeDiscordRequest($endpoint, $data, $method);
