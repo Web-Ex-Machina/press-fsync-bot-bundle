@@ -15,7 +15,7 @@ declare(strict_types=1);
 $GLOBALS['TL_DCA']['tl_module']['palettes']['press_fsync_display_schedule'] = '
     {title_legend},name,headline,type;
     {config_legend},pfs_configs;
-    {list_legend},numberOfItems,skipFirst,perPage;
+    {list_legend},numberOfItems,skipFirst,perPage,pfs_schedule_groupBy;
     {template_legend:hide},pfs_schedule_item_template,customTpl;
     {expert_legend:hide},guests,cssID
 ';
@@ -34,4 +34,12 @@ $GLOBALS['TL_DCA']['tl_module']['fields']['pfs_schedule_item_template'] = [
     'options_callback' => [WEM\PressFsyncBotBundle\DataContainer\ModuleContainer::class, 'getTemplates'],
     'eval' => ['tl_class' => 'w50'],
     'sql' => "varchar(64) NOT NULL default ''",
+];
+$GLOBALS['TL_DCA']['tl_module']['fields']['pfs_schedule_groupBy'] = [
+    'default' => '',
+    'exclude' => true,
+    'inputType' => 'select',
+    'options' => ['day', 'week', 'month', 'year'],
+    'eval' => ['includeBlankOption' => true, 'tl_class' => 'w50'],
+    'sql' => "varchar(16) NOT NULL default ''",
 ];

@@ -10,6 +10,9 @@ use Contao\Input;
 use Contao\PageModel;
 use Contao\System;
 use ContaoInput;
+use DateInterval;
+use DatePeriod;
+use DateTime;
 use Patchwork\Utf8;
 use WEM\UtilsBundle\Classes\StringUtil;
 use WEM\PressFsyncBotBundle\Model\TwitchEvent;
@@ -107,6 +110,10 @@ class DisplaySchedule extends Module
         $this->config = [];
         $this->config['start_time_after'] = time();
 
+        if ($this->pids) {
+            $this->config['users'] = deserialize($this->pids);
+        }
+
         // Retrieve filters
         $this->buildFilters();
 
@@ -165,6 +172,24 @@ class DisplaySchedule extends Module
             $this->Template->items = $this->parseItems($objItems);
         }
 
+        switch ($this->pfs_schedule_groupBy) {
+            case 'year':
+                $this->Template->period = new DatePeriod(new DateTime(), new DateInterval('P1Y'), 6);
+            break;
+            case 'month':
+                $this->Template->period = new DatePeriod(new DateTime(), new DateInterval('P1M'), 6);
+            break;
+            case 'week':
+                $this->Template->period = new DatePeriod(new DateTime(), new DateInterval('P1W'), 6);
+            break;
+            case 'day':
+                $this->Template->period = new DatePeriod(new DateTime(), new DateInterval('P1D'), 6);
+            break;
+            default:
+                $this->Template->period = null;
+        }
+
+        $this->Template->groupBy = $this->pfs_schedule_groupBy;
         $this->Template->module_id = $this->id;
         $this->Template->generateWidgetUrl = PageModel::findByPk($objPage->id)->getFrontendUrl('/generateWidgetUrlModal');
     }
@@ -277,7 +302,24 @@ class DisplaySchedule extends Module
             /** @var NewsModel $objArticle */
             $objArticle = $objItems->current();
 
-            $arrArticles[] = $this->parseItem($objArticle, $blnAddArchive, ((1 === ++$count) ? ' first' : '').(($count === $limit) ? ' last' : '').((0 === ($count % 2)) ? ' odd' : ' even'), $count);
+            $strBuffer = $this->parseItem($objArticle, $blnAddArchive, ((1 === ++$count) ? ' first' : '').(($count === $limit) ? ' last' : '').((0 === ($count % 2)) ? ' odd' : ' even'), $count);
+
+            switch ($this->pfs_schedule_groupBy) {
+                case 'year':
+                    $arrArticles[date('Y', (int) $objItems->start_time)][] = $strBuffer;
+                break;
+                case 'month':
+                    $arrArticles[date('Y-m', (int) $objItems->start_time)][] = $strBuffer;
+                break;
+                case 'week':
+                    $arrArticles[date('Y-m-W', (int) $objItems->start_time)][] = $strBuffer;
+                break;
+                case 'day':
+                    $arrArticles[date('Y-m-d', (int) $objItems->start_time)][] = $strBuffer;
+                break;
+                default:
+                    $arrArticles[] = $strBuffer;
+            }
         }
 
         return $arrArticles;

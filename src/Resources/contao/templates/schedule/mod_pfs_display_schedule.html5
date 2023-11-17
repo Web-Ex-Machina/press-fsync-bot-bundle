@@ -55,7 +55,34 @@
 					<th class="table-list__cell" data-name="actions"><i class="fal fa-pencil-ruler"></i></th>
 				</thead>
 				<tbody>
+					<?php if(null !== $this->period): ?>
+
+					<?php foreach ($this->period as $group): ?>
+
+						<tr class="separator">
+							<td class="ft-b ft-upper" colspan="7">
+								<span class="toggler"></span>
+								<?= ucfirst(\IntlDateFormatter::formatObject($group, 'eeee d MMMM', 'fr')) ?>
+							</td>
+						</tr>
+
+						<?php if(empty($this->items[$group->format('Y-m-d')])): ?>
+							<tr class="empty">
+								<td class="ft-0-8-em" colspan="7">
+									<?= $this->empty; ?>
+								</td>
+							</tr>
+						<?php else: ?>
+							<?= implode('', $this->items[$group->format('Y-m-d')]) ?>
+						<?php endif; ?>
+
+					<?php endforeach; ?>
+
+					<?php else: ?>
+
 					<?= implode('', $this->items); ?>
+
+  				<?php endif; ?>
 				</tbody>
 			</table>
 		</div>
@@ -64,6 +91,7 @@
   <?php endif; ?>
 
 </div>
+
 
 <script type="text/javascript">
 	window.addEventListener('load', (event) => {
