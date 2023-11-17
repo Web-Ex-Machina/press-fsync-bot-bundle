@@ -14,7 +14,7 @@ declare(strict_types=1);
 
 $GLOBALS['TL_DCA']['tl_module']['palettes']['press_fsync_display_schedule'] = '
     {title_legend},name,headline,type;
-    {config_legend},pfs_configs;
+    {config_legend},pfs_configs,pfs_filters;
     {list_legend},numberOfItems,skipFirst,perPage,pfs_schedule_groupBy;
     {template_legend:hide},pfs_schedule_item_template,customTpl;
     {expert_legend:hide},guests,cssID
@@ -27,8 +27,16 @@ $GLOBALS['TL_DCA']['tl_module']['fields']['pfs_configs'] = [
     'eval' => ['multiple' => true, 'mandatory' => true],
     'sql' => 'blob NULL',
 ];
+$GLOBALS['TL_DCA']['tl_module']['fields']['pfs_filters'] = [
+    'default' => '',
+    'exclude' => true,
+    'inputType' => 'select',
+    'options' => ['pid', 'category'],
+    'eval' => ['multiple' => true, 'chosen' => true, 'tl_class' => 'w50'],
+    'sql' => "blob NULL",
+];
 $GLOBALS['TL_DCA']['tl_module']['fields']['pfs_schedule_item_template'] = [
-    'default' => 'job_default',
+    'default' => 'pfs_schedule_item_default',
     'exclude' => true,
     'inputType' => 'select',
     'options_callback' => [WEM\PressFsyncBotBundle\DataContainer\ModuleContainer::class, 'getTemplates'],

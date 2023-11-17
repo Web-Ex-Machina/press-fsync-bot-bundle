@@ -115,7 +115,9 @@ class DisplaySchedule extends Module
         }
 
         // Retrieve filters
-        $this->buildFilters();
+        if ($this->pfs_filters) {
+            $this->buildFilters();
+        }
 
         if ('obs' === Input::get('view')) {
             $this->generateWidget();
@@ -222,61 +224,67 @@ class DisplaySchedule extends Module
      */
     protected function buildFilters()
     {
-        // User filter
-        $arrOptions = [];
-        foreach ($this->pids as $c) {
-            $objConfig = UserConfig::findByPk($c);
+        $arrFilters = deserialize($this->pfs_filters);
 
-            $arrOptions[] = [
-                'value' => $c,
-                'label' => $objConfig->username,
-                'selected' => is_array(Input::get('users')) && in_array($c, Input::get('users')) ? true : false
-            ];
-        }
-
-        $this->filters[] = [
-            'type' => "select",
-            'name' => "users[]",
-            'label' => $GLOBALS['TL_LANG']['PFS']['SCHEDULE']['FILTERS']['users'],
-            'placeholder' => $GGLOBALS['TL_LANG']['PFS']['SCHEDULE']['FILTERS']['usersPlaceholder'],
-            'value' => Input::get('users') ?: '',
-            'options' => $arrOptions,
-            'multiple' => true,
-        ];
-
-        if ('' !== Input::get('users') && null !== Input::get('users')) {
-            $this->config['users'] = Input::get('users');
-        }
-
-        // Category filter
-        $arrOptions = [];
-        $objOptions = TwitchEvent::findItemsGroupByOneField('category_name');
-        if ($objOptions) {
-            while ($objOptions->next()) {
-                if (!$objOptions->category_name) {
-                    continue;
-                }
+        if (in_array('pid', $arrFilters)) {
+            // User filter
+            $arrOptions = [];
+            foreach ($this->pids as $c) {
+                $objConfig = UserConfig::findByPk($c);
 
                 $arrOptions[] = [
-                    'value' => $objOptions->category_name,
-                    'label' => $objOptions->category_name,
-                    'selected' => Input::get('category') === $objOptions->category_name,
+                    'value' => $c,
+                    'label' => $objConfig->username,
+                    'selected' => is_array(Input::get('users')) && in_array($c, Input::get('users')) ? true : false
                 ];
             }
-        }
 
-        $this->filters[] = [
-            'type' => "select",
-            'name' => "category",
-            'label' => $GLOBALS['TL_LANG']['PFS']['SCHEDULE']['FILTERS']['category'],
-            'placeholder' => $GLOBALS['TL_LANG']['PFS']['SCHEDULE']['FILTERS']['categoryPlaceholder'],
-            'value' => Input::get('category') ?: '',
-            'options' => $arrOptions
-        ];
+            $this->filters[] = [
+                'type' => "select",
+                'name' => "users[]",
+                'label' => $GLOBALS['TL_LANG']['PFS']['SCHEDULE']['FILTERS']['users'],
+                'placeholder' => $GGLOBALS['TL_LANG']['PFS']['SCHEDULE']['FILTERS']['usersPlaceholder'],
+                'value' => Input::get('users') ?: '',
+                'options' => $arrOptions,
+                'multiple' => true,
+            ];
 
-        if ('' !== Input::get('category') && null !== Input::get('category')) {
-            $this->config['category_name'] = Input::get('category');
+            if ('' !== Input::get('users') && null !== Input::get('users')) {
+                $this->config['users'] = Input::get('users');
+            }
         }
+        
+        if (in_array('category', $arrFilters)) {
+            // Category filter
+            $arrOptions = [];
+            $objOptions = TwitchEvent::findItemsGroupByOneField('category_name');
+            if ($objOptions) {
+                while ($objOptions->next()) {
+                    if (!$objOptions->category_name) {
+                        continue;
+                    }
+
+                    $arrOptions[] = [
+                        'value' => $objOptions->category_name,
+                        'label' => $objOptions->category_name,
+                        'selected' => Input::get('category') === $objOptions->category_name,
+                    ];
+                }
+            }
+
+            $this->filters[] = [
+                'type' => "select",
+                'name' => "category",
+                'label' => $GLOBALS['TL_LANG']['PFS']['SCHEDULE']['FILTERS']['category'],
+                'placeholder' => $GLOBALS['TL_LANG']['PFS']['SCHEDULE']['FILTERS']['categoryPlaceholder'],
+                'value' => Input::get('category') ?: '',
+                'options' => $arrOptions
+            ];
+
+            if ('' !== Input::get('category') && null !== Input::get('category')) {
+                $this->config['category_name'] = Input::get('category');
+            }
+        }        
     }
 
     /**
