@@ -108,7 +108,6 @@ class DisplaySchedule extends Module
 
         // Add pids
         $this->config = [];
-        $this->config['start_time_after'] = time();
 
         if ($this->pids) {
             $this->config['users'] = deserialize($this->pids);
