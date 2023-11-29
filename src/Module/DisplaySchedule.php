@@ -185,7 +185,7 @@ class DisplaySchedule extends Module
                 $this->Template->period = new DatePeriod(new DateTime(), new DateInterval('P1W'), 6);
             break;
             case 'day':
-                $this->Template->period = new DatePeriod(new DateTime(), new DateInterval('P1D'), 6);
+                $this->Template->period = new DatePeriod(new DateTime(), new DateInterval('P1D'), 31);
             break;
             default:
                 $this->Template->period = null;

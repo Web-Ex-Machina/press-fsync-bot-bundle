@@ -38,7 +38,7 @@
 		    </div>
 		</form>
   	<?php endif; ?>
-  	<button class="btn openGenerateWidgetModal">Générer un widget</button>
+  	<button class="btn hidden openGenerateWidgetModal">Générer un widget</button>
 
   <?php if (empty($this->items)): ?>
     <p class="empty"><?= $this->empty; ?></p>
