@@ -245,7 +245,7 @@ class GeneratePageListener extends \Controller
     protected function syncDiscordEvents()
     {
         // Retrieve the events
-        $objEvents = TwitchEvent::findItems(['start_time_after' => time(), 'start_time_before' => strtotime("+1 week")]);
+        $objEvents = TwitchEvent::findItems(['start_time_before' => strtotime("+1 week")]);
 
         // Nothing to do, skip
         if (!$objEvents || 0 === $objEvents) {
