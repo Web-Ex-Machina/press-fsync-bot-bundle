@@ -173,18 +173,20 @@ class DisplaySchedule extends Module
             $this->Template->items = $this->parseItems($objItems);
         }
 
+        $nbGroupBy = $this->pfs_schedule_nbGroupsBy ?: 12;
+
         switch ($this->pfs_schedule_groupBy) {
             case 'year':
-                $this->Template->period = new DatePeriod(new DateTime(), new DateInterval('P1Y'), 6);
+                $this->Template->period = new DatePeriod(new DateTime(), new DateInterval('P1Y'), $nbGroupBy);
             break;
             case 'month':
-                $this->Template->period = new DatePeriod(new DateTime(), new DateInterval('P1M'), 6);
+                $this->Template->period = new DatePeriod(new DateTime(), new DateInterval('P1M'), $nbGroupBy);
             break;
             case 'week':
-                $this->Template->period = new DatePeriod(new DateTime(), new DateInterval('P1W'), 6);
+                $this->Template->period = new DatePeriod(new DateTime(), new DateInterval('P1W'), $nbGroupBy);
             break;
             case 'day':
-                $this->Template->period = new DatePeriod(new DateTime(), new DateInterval('P1D'), 31);
+                $this->Template->period = new DatePeriod(new DateTime(), new DateInterval('P1D'), $nbGroupBy);
             break;
             default:
                 $this->Template->period = null;
