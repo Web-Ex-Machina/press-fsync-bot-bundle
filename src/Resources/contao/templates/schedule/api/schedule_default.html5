@@ -1,0 +1,19 @@
+<?php foreach($this->items as $e): ?>
+<div class="row">
+	<div class="cell date"><?= $e['date_simple'] ?></div>
+	<div class="cell hour"><?= $e['time'] ?></div>
+	<div class="cell user"><img src="<?= $e['logo'] ?>" /><?= $e['username'] ?></div>
+	<div class="cell title"><span><?= $e['title'] ?></span></div>
+</div>
+<?php endforeach; ?>
+
+<style type="text/css">
+*{font-family: 'Open Sans Condensed';font-weight:900;color:#222;text-transform:uppercase;font-size:14px;line-height:32px;padding:0;margin:0;white-space:nowrap;}
+.row{display:flex;margin-bottom:5px;align-items:center;max-width:600px}
+.cell{background:white;padding:0 5px;position:relative;margin-right:5px;margin-bottom:0;}
+.date,.hour{background:#1f0231;color:white;}
+.user{display:flex;width:110px;align-items:center;}
+.user img{margin-right:5px;max-height:25px;width:auto;}
+.title{width:300px;flex:1}
+.title span{text-overflow:ellipsis;display:inline-block;overflow:hidden;width:300px;}
+</style>

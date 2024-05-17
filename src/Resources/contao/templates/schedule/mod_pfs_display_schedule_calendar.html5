@@ -38,7 +38,6 @@
 		    </div>
 		</form>
   	<?php endif; ?>
-  	<button class="btn hidden openGenerateWidgetModal">Générer un widget</button>
 
   <?php if (empty($this->items)): ?>
     <p class="empty"><?= $this->empty; ?></p>
@@ -91,19 +90,5 @@
   <?php endif; ?>
 
 </div>
-
-
-<script type="text/javascript">
-	window.addEventListener('load', (event) => {
-		$('.openGenerateWidgetModal').bind('click', function() {
-			var generateWidgetModal = new app.ModalFW({
-	      name : 'generateWidgetModal',
-	      url: '<?= $this->generateWidgetUrl ?>',
-	      blnAutodestroy: true,
-	    });
-	    generateWidgetModal.open();
-		});    
-	}); 
-</script>
 
 <?php $this->endblock(); ?>

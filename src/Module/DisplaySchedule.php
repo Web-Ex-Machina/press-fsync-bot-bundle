@@ -5,12 +5,15 @@ declare(strict_types=1);
 namespace WEM\PressFsyncBotBundle\Module;
 
 use Contao\Config;
+use Contao\Date;
 use Contao\Module;
 use Contao\Input;
 use Contao\PageModel;
 use Contao\System;
 use ContaoInput;
-use Patchwork\Utf8;
+use DateInterval;
+use DatePeriod;
+use DateTime;
 use WEM\UtilsBundle\Classes\StringUtil;
 use WEM\PressFsyncBotBundle\Model\TwitchEvent;
 use WEM\PressFsyncBotBundle\Model\UserConfig;
@@ -57,7 +60,7 @@ class DisplaySchedule extends Module
     {
         if (TL_MODE === 'BE') {
             $objTemplate = new \BackendTemplate('be_wildcard');
-            $objTemplate->wildcard = '### '.Utf8::strtoupper($GLOBALS['TL_LANG']['FMD']['press_fsync_display_schedule'][0]).' ###';
+            $objTemplate->wildcard = '### '.strtoupper($GLOBALS['TL_LANG']['FMD']['press_fsync_display_schedule'][0] ?: '').' ###';
             $objTemplate->title = $this->headline;
             $objTemplate->id = $this->id;
             $objTemplate->link = $this->name;
@@ -88,27 +91,21 @@ class DisplaySchedule extends Module
         }
 
         global $objPage;
-        $this->limit = null;
-        $this->offset = (int) $this->skipFirst;
-
-        // Maximum number of items
-        if ($this->numberOfItems > 0) {
-            $this->limit = $this->numberOfItems;
-        }
-
-        if (Input::get('nbitems')) {
-            $this->limit = (int) Input::get('nbitems');
-        }
 
         $this->Template->articles = [];
         $this->Template->empty = $GLOBALS['TL_LANG']['PFS']['SCHEDULE']['empty'];
 
         // Add pids
         $this->config = [];
-        $this->config['start_time_after'] = time();
+
+        if ($this->pids) {
+            $this->config['users'] = deserialize($this->pids);
+        }
 
         // Retrieve filters
-        $this->buildFilters();
+        if ($this->pfs_filters) {
+            $this->buildFilters();
+        }
 
         if ('obs' === Input::get('view')) {
             $this->generateWidget();
@@ -125,7 +122,48 @@ class DisplaySchedule extends Module
             return;
         }
 
-        $total = $intTotal - $offset;
+        $this->Template->module_id = $this->id;
+        $this->Template->generateWidgetUrl = PageModel::findByPk($objPage->id)->getFrontendUrl('/generateWidgetUrlModal');
+            $this->buildCalendar();
+
+        if ('list' === $this->pfs_schedule_mode) {
+            $this->buildList($intTotal);
+        } else if('calendar' === $this->pfs_schedule_mode) {
+        }
+    }
+
+    protected function buildCalendar()
+    {
+        $objDate = new Date();
+        $start = new DateTime(Input::get('start') ?: date('Y-m-d', $objDate->monthBegin));
+        $end = new DateTime(Input::get('end') ?: date('Y-m-d', $objDate->monthEnd));
+        $arrDays = new DatePeriod($start, new DateInterval('P1D'), (int) $start->diff($end)->format("%r%a"));
+
+        foreach ($arrDays as $day) {
+            // Retrieve all events of the day
+
+            // Parse them and store them
+
+        }
+
+        // Send all "cells" to template
+    }
+
+    protected function buildList($intTotal)
+    {
+        $this->limit = null;
+        $this->offset = (int) $this->skipFirst;
+
+        // Maximum number of items
+        if ($this->numberOfItems > 0) {
+            $this->limit = $this->numberOfItems;
+        }
+
+        if (Input::get('nbitems')) {
+            $this->limit = (int) Input::get('nbitems');
+        }
+
+        $total = $intTotal - $this->offset;
 
         // Split the results
         if ($this->perPage > 0 && (!isset($this->limit) || $this->numberOfItems > $this->perPage)) {
@@ -165,8 +203,26 @@ class DisplaySchedule extends Module
             $this->Template->items = $this->parseItems($objItems);
         }
 
-        $this->Template->module_id = $this->id;
-        $this->Template->generateWidgetUrl = PageModel::findByPk($objPage->id)->getFrontendUrl('/generateWidgetUrlModal');
+        $nbGroupBy = $this->pfs_schedule_nbGroupsBy ?: 12;
+
+        switch ($this->pfs_schedule_groupBy) {
+            case 'year':
+                $this->Template->period = new DatePeriod(new DateTime(), new DateInterval('P1Y'), $nbGroupBy);
+            break;
+            case 'month':
+                $this->Template->period = new DatePeriod(new DateTime(), new DateInterval('P1M'), $nbGroupBy);
+            break;
+            case 'week':
+                $this->Template->period = new DatePeriod(new DateTime(), new DateInterval('P1W'), $nbGroupBy);
+            break;
+            case 'day':
+                $this->Template->period = new DatePeriod(new DateTime(), new DateInterval('P1D'), $nbGroupBy);
+            break;
+            default:
+                $this->Template->period = null;
+        }
+
+        $this->Template->groupBy = $this->pfs_schedule_groupBy;
     }
 
     protected function generateWidget()
@@ -197,61 +253,67 @@ class DisplaySchedule extends Module
      */
     protected function buildFilters()
     {
-        // User filter
-        $arrOptions = [];
-        foreach ($this->pids as $c) {
-            $objConfig = UserConfig::findByPk($c);
+        $arrFilters = deserialize($this->pfs_filters);
 
-            $arrOptions[] = [
-                'value' => $c,
-                'label' => $objConfig->username,
-                'selected' => is_array(Input::get('users')) && in_array($c, Input::get('users')) ? true : false
-            ];
-        }
-
-        $this->filters[] = [
-            'type' => "select",
-            'name' => "users[]",
-            'label' => $GLOBALS['TL_LANG']['PFS']['SCHEDULE']['FILTERS']['users'],
-            'placeholder' => $GGLOBALS['TL_LANG']['PFS']['SCHEDULE']['FILTERS']['usersPlaceholder'],
-            'value' => Input::get('users') ?: '',
-            'options' => $arrOptions,
-            'multiple' => true,
-        ];
-
-        if ('' !== Input::get('users') && null !== Input::get('users')) {
-            $this->config['users'] = Input::get('users');
-        }
-
-        // Category filter
-        $arrOptions = [];
-        $objOptions = TwitchEvent::findItemsGroupByOneField('category_name');
-        if ($objOptions) {
-            while ($objOptions->next()) {
-                if (!$objOptions->category_name) {
-                    continue;
-                }
+        if (in_array('pid', $arrFilters)) {
+            // User filter
+            $arrOptions = [];
+            foreach ($this->pids as $c) {
+                $objConfig = UserConfig::findByPk($c);
 
                 $arrOptions[] = [
-                    'value' => $objOptions->category_name,
-                    'label' => $objOptions->category_name,
-                    'selected' => Input::get('category') === $objOptions->category_name,
+                    'value' => $c,
+                    'label' => $objConfig->username,
+                    'selected' => is_array(Input::get('users')) && in_array($c, Input::get('users')) ? true : false
                 ];
             }
-        }
 
-        $this->filters[] = [
-            'type' => "select",
-            'name' => "category",
-            'label' => $GLOBALS['TL_LANG']['PFS']['SCHEDULE']['FILTERS']['category'],
-            'placeholder' => $GLOBALS['TL_LANG']['PFS']['SCHEDULE']['FILTERS']['categoryPlaceholder'],
-            'value' => Input::get('category') ?: '',
-            'options' => $arrOptions
-        ];
+            $this->filters[] = [
+                'type' => "select",
+                'name' => "users[]",
+                'label' => $GLOBALS['TL_LANG']['PFS']['SCHEDULE']['FILTERS']['users'],
+                'placeholder' => $GGLOBALS['TL_LANG']['PFS']['SCHEDULE']['FILTERS']['usersPlaceholder'],
+                'value' => Input::get('users') ?: '',
+                'options' => $arrOptions,
+                'multiple' => true,
+            ];
 
-        if ('' !== Input::get('category') && null !== Input::get('category')) {
-            $this->config['category_name'] = Input::get('category');
+            if ('' !== Input::get('users') && null !== Input::get('users')) {
+                $this->config['users'] = Input::get('users');
+            }
         }
+        
+        if (in_array('category', $arrFilters)) {
+            // Category filter
+            $arrOptions = [];
+            $objOptions = TwitchEvent::findItemsGroupByOneField('category_name');
+            if ($objOptions) {
+                while ($objOptions->next()) {
+                    if (!$objOptions->category_name) {
+                        continue;
+                    }
+
+                    $arrOptions[] = [
+                        'value' => $objOptions->category_name,
+                        'label' => $objOptions->category_name,
+                        'selected' => Input::get('category') === $objOptions->category_name,
+                    ];
+                }
+            }
+
+            $this->filters[] = [
+                'type' => "select",
+                'name' => "category",
+                'label' => $GLOBALS['TL_LANG']['PFS']['SCHEDULE']['FILTERS']['category'],
+                'placeholder' => $GLOBALS['TL_LANG']['PFS']['SCHEDULE']['FILTERS']['categoryPlaceholder'],
+                'value' => Input::get('category') ?: '',
+                'options' => $arrOptions
+            ];
+
+            if ('' !== Input::get('category') && null !== Input::get('category')) {
+                $this->config['category_name'] = Input::get('category');
+            }
+        }        
     }
 
     /**
@@ -277,7 +339,24 @@ class DisplaySchedule extends Module
             /** @var NewsModel $objArticle */
             $objArticle = $objItems->current();
 
-            $arrArticles[] = $this->parseItem($objArticle, $blnAddArchive, ((1 === ++$count) ? ' first' : '').(($count === $limit) ? ' last' : '').((0 === ($count % 2)) ? ' odd' : ' even'), $count);
+            $strBuffer = $this->parseItem($objArticle, $blnAddArchive, ((1 === ++$count) ? ' first' : '').(($count === $limit) ? ' last' : '').((0 === ($count % 2)) ? ' odd' : ' even'), $count);
+
+            switch ($this->pfs_schedule_groupBy) {
+                case 'year':
+                    $arrArticles[date('Y', (int) $objItems->start_time)][] = $strBuffer;
+                break;
+                case 'month':
+                    $arrArticles[date('Y-m', (int) $objItems->start_time)][] = $strBuffer;
+                break;
+                case 'week':
+                    $arrArticles[date('Y-m-W', (int) $objItems->start_time)][] = $strBuffer;
+                break;
+                case 'day':
+                    $arrArticles[date('Y-m-d', (int) $objItems->start_time)][] = $strBuffer;
+                break;
+                default:
+                    $arrArticles[] = $strBuffer;
+            }
         }
 
         return $arrArticles;
