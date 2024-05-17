@@ -155,6 +155,48 @@ class GeneratePageListener extends \Controller
                 echo 'checkdystopeekarticles';
             break;
 
+            case 'getschedule':
+                $c = ['notcanceled' => true];
+
+                if(1 !== (int) Input::get('keepCurrent')) {
+                    $c['start_time_after'] = time();
+                }
+
+                $limit = Input::get('limit') ?: 3;
+                $template = Input::get('template') ?: 'default';
+
+                $objItems = TwitchEvent::findItems($c, $limit);
+                $arrEvents = [];
+
+                if (!$objItems) {
+                    echo '';
+                    die;
+                }
+
+                $encryptionService = System::getContainer()->get('plenta.encryption');
+                $objTemplate = new \FrontendTemplate('schedule_' . $template);
+
+                while ($objItems->next()) {
+                    $u = $objItems->getRelated('user');
+                    $logo = \FilesModel::findByUuid($u->syncTwitchScheduleWithDiscordMessagesThumbnail);
+
+                    $e = $objItems->row();
+                    $e['logo'] = $logo ? \Environment::get('base') . '/' . $logo->path : null;
+                    $e['username'] = $encryptionService->decrypt($u->twitchUsername);
+                    $e['url'] = 'https://www.twitch.tv/' . $encryptionService->decrypt($u->twitchUsername);
+                    $e['datetime'] = date('d/m/Y à H:i', $objItems->start_time);
+                    $e['date'] = date('d/m/Y', $objItems->start_time);
+                    $e['date_simple'] = date('d/m', $objItems->start_time);
+                    $e['time'] = date('H\hi', $objItems->start_time);
+
+                    $arrEvents[] = $e;
+                }
+
+                $objTemplate->items = $arrEvents;
+                echo $objTemplate->parse();
+                die;
+            break;
+
             case 'executetasks':
                 // Hardlock the timeout
                 set_time_limit(60);
@@ -206,6 +248,10 @@ class GeneratePageListener extends \Controller
                 ]
             );
 
+            if (null === $r || !array_key_exists('data', $r) || null === $r['data'] || null === $r['data']['segments']) {
+                continue;
+            }
+
             // Loop on the events
             foreach ($r['data']['segments'] as $event) {
                 // Skip if event is in one month or after
@@ -214,7 +260,7 @@ class GeneratePageListener extends \Controller
                 }
 
                 if (null !== $event['canceled_until']) {
-                    continue;
+                    // continue;
                 }
 
                 // Sync the event in the database
@@ -245,7 +291,7 @@ class GeneratePageListener extends \Controller
     protected function syncDiscordEvents()
     {
         // Retrieve the events
-        $objEvents = TwitchEvent::findItems(['start_time_after' => time(), 'start_time_before' => strtotime("+1 week")]);
+        $objEvents = TwitchEvent::findItems(['start_time_before' => strtotime("+1 week"), 'notcanceled' => true]);
 
         // Nothing to do, skip
         if (!$objEvents || 0 === $objEvents) {
@@ -370,10 +416,10 @@ class GeneratePageListener extends \Controller
     protected function syncDiscordMessages()
     {
         // Retrieve the events
-        $objEvents = TwitchEvent::findItems(['start_time_after' => time()]);
+        $objEvents = TwitchEvent::findItems(['start_time_after' => time(), 'notcanceled' => true]);
 
         // Nothing to do, skip
-        if (!$objEvents || 0 === $objEvents) {
+        if (!$objEvents || 0 === $objEvents->count()) {
             return;
         }
 
@@ -460,11 +506,13 @@ class GeneratePageListener extends \Controller
             $objEvent->user = $t['id'];
             $objEvent->start_time = $this->getTimestampFromTwitchDate($event['start_time']);
             $objEvent->end_time = $this->getTimestampFromTwitchDate($event['end_time']);
-            $objEvent->title = $event['title'];
+            $objEvent->title = addslashes($event['title']);
             $objEvent->is_recurring = $event['is_recurring'] ? 1 : '';
             $objEvent->canceled_until = $this->getTimestampFromTwitchDate($event['canceled_until']);
-            $objEvent->category_id = $event['category']['id'] ?: 0;
-            $objEvent->category_name = $event['category']['name'] ?: '';
+            if ($event['category']) {
+                $objEvent->category_id = $event['category']['id'] ?: 0;
+                $objEvent->category_name = $event['category']['name'] ?: '';
+            }
             $objEvent->save();
 
             return $objEvent;
@@ -554,9 +602,16 @@ class GeneratePageListener extends \Controller
                     case 'add_event':
                     case 'update_event':
                         $objEvent = TwitchEvent::findByPk($data['event']);
+
+                        // If there is no event, log the thing and return true so it won't stuck the process
+                        if (!$objEvent) {
+                            \System::log("Error with the event ID".$data['event'], __METHOD__, 'TL_ERROR');
+                            return true;
+                        }
+
                         $intConfig = $data['config']['id'];
 
-                        $data['title'] = $objEvent->title;
+                        $data['title'] = stripslashes(substr($objEvent->title, 0, 100));
                         $data['url'] = $data['config']['url'];
                         $data['user'] = $data['config']['broadcaster_id'];
                         $data['start_time'] = date('c', $objEvent->start_time);
@@ -566,9 +621,6 @@ class GeneratePageListener extends \Controller
                         if ($data['config']['default_picture']) {
                             $data['image'] = $data['config']['default_picture'];
                         }
-
-                        unset($data['event']);
-                        unset($data['config']);
 
                         $data = $this->parseTwitchEvent($data);
 

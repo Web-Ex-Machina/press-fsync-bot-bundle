@@ -1,0 +1,94 @@
+<?php $this->extend('block_unsearchable'); ?>
+
+<?php $this->block('content'); ?>
+
+<div class="events__wrapper container ft-0-8-em">
+  	<?php if ($this->filters): ?>
+		<form action="{{env::request}}" method="GET" class="m-right">
+		    <div class="filters events__filters m-bottom-0 " data-container="events">
+		    	<div class="filters__line line--1 events__filters__line m-bottom-0">
+		    		<div class="filters__col col--left">
+			    	<?php foreach ($this->filters as $f): ?>
+							<?php if ('select' == $f['type']): ?>
+								<div class="filters__group form-group">
+									<select class="filter" name="<?= $f['name']; ?>"<?= $f['multiple'] ? ' multiple' : ''; ?><?= $f['multiple'] ? ' placeholder="'. ($f['placeholder'] ?: $f['label']) .'"' : ''; ?> onchange="this.closest('form').submit()">
+										<?php if (!$f['multiple']): ?>
+										<option value="">- <?= $f['label']; ?> -</option>
+										<?php endif; ?>
+										<?php foreach ($f['options'] as $o): ?>
+										<option value="<?= $o['value']; ?>"<?= $o['selected'] ? ' selected' : ''; ?>><?= $o['label']; ?></option>
+										<?php endforeach; ?>
+									</select>
+								</div>
+							<?php elseif ('datepicker' == $f['type']): ?>
+								<div class="filters__group form-group">
+									<input class="filter datepicker" type="text" name="<?= $f['name']; ?>" value="<?= $f['value']; ?>" placeholder="<?= ($f['placeholder'] ?: $f['label']) ?>" data-timepicker="false" data-datepicker="true" data-formatdate="<?= $f['formatdate']; ?>" data-mindate="<?= $f['mindate']; ?>" data-maxdate="<?= $f['maxdate']; ?>"  data-reset="true" />
+								</div>
+							<?php else: ?>
+								<div class="filters__group form-group <?= $f['name']=='search' ? 'form-shrink input-group' : '' ?>">
+									<input class="filter" type="text" name="<?= $f['name']; ?>" value="<?= $f['value']; ?>" placeholder="<?= ($f['placeholder'] ?: $f['label']) ?>" />
+									<?php if ($f['name']=='search'): ?>
+									<button type="submit" class="squared btn-bg-none"><i class="fal fa-search"></i></button>
+									<?php endif ?>
+								</div>
+							<?php endif; ?>
+			  		<?php endforeach; ?>
+			  		</div>
+			  	</div>
+		    </div>
+		</form>
+  	<?php endif; ?>
+
+  <?php if (empty($this->items)): ?>
+    <p class="empty"><?= $this->empty; ?></p>
+  <?php else: ?>
+		<div class="table-list fix--shadow" data-responsive="true">
+			<table class="table-list__container">
+				<thead>
+					<th class="table-list__cell" data-name="avatar">Avatar</th>
+					<th class="table-list__cell" data-name="user">Streamer</th>
+					<th class="table-list__cell" data-name="title">Intitulé</th>
+					<th class="table-list__cell" data-name="category">Catégorie</th>
+					<th class="table-list__cell" data-name="date">Date</th>
+					<th class="table-list__cell" data-name="duration">Durée</th>
+					<th class="table-list__cell" data-name="actions"><i class="fal fa-pencil-ruler"></i></th>
+				</thead>
+				<tbody>
+					<?php if(null !== $this->period): ?>
+
+					<?php foreach ($this->period as $group): ?>
+
+						<tr class="separator">
+							<td class="ft-b ft-upper" colspan="7">
+								<span class="toggler"></span>
+								<?= ucfirst(\IntlDateFormatter::formatObject($group, 'eeee d MMMM', 'fr')) ?>
+							</td>
+						</tr>
+
+						<?php if(empty($this->items[$group->format('Y-m-d')])): ?>
+							<tr class="empty">
+								<td class="ft-0-8-em" colspan="7">
+									<?= $this->empty; ?>
+								</td>
+							</tr>
+						<?php else: ?>
+							<?= implode('', $this->items[$group->format('Y-m-d')]) ?>
+						<?php endif; ?>
+
+					<?php endforeach; ?>
+
+					<?php else: ?>
+
+					<?= implode('', $this->items); ?>
+
+  				<?php endif; ?>
+				</tbody>
+			</table>
+		</div>
+	  <?= $this->pagination; ?>
+
+  <?php endif; ?>
+
+</div>
+
+<?php $this->endblock(); ?>

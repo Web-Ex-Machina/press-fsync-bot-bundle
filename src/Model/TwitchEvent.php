@@ -55,6 +55,12 @@ class TwitchEvent extends \WEM\UtilsBundle\Model\Model
                     $arrColumns[] = sprintf("$t.start_time <= %s", $varValue);
                 break;
 
+                case 'notcanceled':
+                    if (true === $varValue) {
+                        $arrColumns[] = sprintf("$t.canceled_until IS NULL");
+                    }
+                break;
+
                 case 'search':
                     $strKeywords = implode('|', $varValue);
                     $arrColumns[] = "($t.title REGEXP '$strKeywords' OR $t.category_name REGEXP '$strKeywords')";

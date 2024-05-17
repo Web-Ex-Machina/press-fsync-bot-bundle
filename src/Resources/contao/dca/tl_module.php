@@ -12,13 +12,17 @@ declare(strict_types=1);
  * @link     https://github.com/Web-Ex-Machina/press-fsync-bot-bundle/
  */
 
+$GLOBALS['TL_DCA']['tl_module']['palettes']['__selector__'][] = 'pfs_schedule_mode';
 $GLOBALS['TL_DCA']['tl_module']['palettes']['press_fsync_display_schedule'] = '
     {title_legend},name,headline,type;
     {config_legend},pfs_configs,pfs_filters;
-    {list_legend},numberOfItems,skipFirst,perPage,pfs_schedule_groupBy,pfs_schedule_nbGroupsBy;
+    {list_legend},pfs_schedule_mode;
     {template_legend:hide},pfs_schedule_item_template,customTpl;
     {expert_legend:hide},guests,cssID
 ';
+
+$GLOBALS['TL_DCA']['tl_module']['subpalettes']['pfs_schedule_mode_list'] = 'numberOfItems,skipFirst,perPage,pfs_schedule_groupBy,pfs_schedule_nbGroupsBy';
+$GLOBALS['TL_DCA']['tl_module']['subpalettes']['pfs_schedule_mode_calendar'] = '';
 
 $GLOBALS['TL_DCA']['tl_module']['fields']['pfs_configs'] = [
     'exclude' => true,
@@ -34,6 +38,13 @@ $GLOBALS['TL_DCA']['tl_module']['fields']['pfs_filters'] = [
     'options' => ['pid', 'category'],
     'eval' => ['multiple' => true, 'chosen' => true, 'tl_class' => 'w50'],
     'sql' => "blob NULL",
+];
+$GLOBALS['TL_DCA']['tl_module']['fields']['pfs_schedule_mode'] = [
+    'exclude' => true,
+    'inputType' => 'select',
+    'options' => ['list', 'calendar'],
+    'eval' => ['includeBlankOption' => true, 'submitOnChange' => true],
+    'sql' => "varchar(16) NOT NULL default ''",
 ];
 $GLOBALS['TL_DCA']['tl_module']['fields']['pfs_schedule_item_template'] = [
     'default' => 'pfs_schedule_item_default',

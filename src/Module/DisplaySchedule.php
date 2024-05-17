@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace WEM\PressFsyncBotBundle\Module;
 
 use Contao\Config;
+use Contao\Date;
 use Contao\Module;
 use Contao\Input;
 use Contao\PageModel;
@@ -13,7 +14,6 @@ use ContaoInput;
 use DateInterval;
 use DatePeriod;
 use DateTime;
-use Patchwork\Utf8;
 use WEM\UtilsBundle\Classes\StringUtil;
 use WEM\PressFsyncBotBundle\Model\TwitchEvent;
 use WEM\PressFsyncBotBundle\Model\UserConfig;
@@ -60,7 +60,7 @@ class DisplaySchedule extends Module
     {
         if (TL_MODE === 'BE') {
             $objTemplate = new \BackendTemplate('be_wildcard');
-            $objTemplate->wildcard = '### '.Utf8::strtoupper($GLOBALS['TL_LANG']['FMD']['press_fsync_display_schedule'][0]).' ###';
+            $objTemplate->wildcard = '### '.strtoupper($GLOBALS['TL_LANG']['FMD']['press_fsync_display_schedule'][0] ?: '').' ###';
             $objTemplate->title = $this->headline;
             $objTemplate->id = $this->id;
             $objTemplate->link = $this->name;
@@ -91,17 +91,6 @@ class DisplaySchedule extends Module
         }
 
         global $objPage;
-        $this->limit = null;
-        $this->offset = (int) $this->skipFirst;
-
-        // Maximum number of items
-        if ($this->numberOfItems > 0) {
-            $this->limit = $this->numberOfItems;
-        }
-
-        if (Input::get('nbitems')) {
-            $this->limit = (int) Input::get('nbitems');
-        }
 
         $this->Template->articles = [];
         $this->Template->empty = $GLOBALS['TL_LANG']['PFS']['SCHEDULE']['empty'];
@@ -133,7 +122,48 @@ class DisplaySchedule extends Module
             return;
         }
 
-        $total = $intTotal - $offset;
+        $this->Template->module_id = $this->id;
+        $this->Template->generateWidgetUrl = PageModel::findByPk($objPage->id)->getFrontendUrl('/generateWidgetUrlModal');
+            $this->buildCalendar();
+
+        if ('list' === $this->pfs_schedule_mode) {
+            $this->buildList($intTotal);
+        } else if('calendar' === $this->pfs_schedule_mode) {
+        }
+    }
+
+    protected function buildCalendar()
+    {
+        $objDate = new Date();
+        $start = new DateTime(Input::get('start') ?: date('Y-m-d', $objDate->monthBegin));
+        $end = new DateTime(Input::get('end') ?: date('Y-m-d', $objDate->monthEnd));
+        $arrDays = new DatePeriod($start, new DateInterval('P1D'), (int) $start->diff($end)->format("%r%a"));
+
+        foreach ($arrDays as $day) {
+            // Retrieve all events of the day
+
+            // Parse them and store them
+
+        }
+
+        // Send all "cells" to template
+    }
+
+    protected function buildList($intTotal)
+    {
+        $this->limit = null;
+        $this->offset = (int) $this->skipFirst;
+
+        // Maximum number of items
+        if ($this->numberOfItems > 0) {
+            $this->limit = $this->numberOfItems;
+        }
+
+        if (Input::get('nbitems')) {
+            $this->limit = (int) Input::get('nbitems');
+        }
+
+        $total = $intTotal - $this->offset;
 
         // Split the results
         if ($this->perPage > 0 && (!isset($this->limit) || $this->numberOfItems > $this->perPage)) {
@@ -193,8 +223,6 @@ class DisplaySchedule extends Module
         }
 
         $this->Template->groupBy = $this->pfs_schedule_groupBy;
-        $this->Template->module_id = $this->id;
-        $this->Template->generateWidgetUrl = PageModel::findByPk($objPage->id)->getFrontendUrl('/generateWidgetUrlModal');
     }
 
     protected function generateWidget()
