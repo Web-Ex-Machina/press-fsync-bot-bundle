@@ -10,10 +10,10 @@ use Contao\Environment;
 use Contao\File;
 use Contao\FilesModel;
 use Contao\Image;
+use Contao\Input;
 use Contao\StringUtil;
 use Contao\System;
 
-use Haste\Input\Input;
 use Haste\Http\Response\JsonResponse;
 
 use WEM\PressFsyncBotBundle\Classes\Rawg;

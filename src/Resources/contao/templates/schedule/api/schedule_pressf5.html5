@@ -1,0 +1,32 @@
+<?php foreach($this->items as $e): ?>
+<div class="row">
+	<div class="cell date"><?= $e['date_simple'] ?></div>
+	<div class="cell hour"><?= $e['time'] ?></div>
+	<div class="cell user"><img src="<?= $e['logo'] ?>" /><?= $e['username'] ?></div>
+	<div class="cell title"><span><?= $e['title'] ?></span></div>
+</div>
+<?php endforeach; ?>
+
+<style type="text/css">
+*{font-family: 'Open Sans Condensed';font-weight:900;color:#222;text-transform:uppercase;font-size:14px;line-height:32px;padding:0;margin:0;white-space:nowrap;}
+.row{display:flex;margin-bottom:5px;align-items:center;width: 490px;}
+.cell{background:white;padding:0 5px 0 10px;position:relative;margin-right:16px;margin-bottom:0;}
+.cell:before{content:'';position:absolute;right:100%;top:0px;width:0;height:0;z-index:9}
+.cell:after{content:'';position:absolute;left:100%;top:0px;width:0;height:0;z-index:9}
+.date{background:#99ff43;}
+.date:after{border-right:16px solid transparent;border-bottom:32px solid #99ff43;}
+.hour{background:#1f0231;color:white}
+.hour:before{border-left:16px solid transparent;border-top:32px solid #1f0231;}
+.hour:after{border-right:16px solid transparent;border-bottom:32px solid #1f0231;}
+.user{display:flex;width:110px;align-items:center;}
+.user:before{border-left:16px solid transparent;border-top:32px solid white;}
+.user:after{border-right:16px solid transparent;border-bottom:32px solid white;}
+.user img{margin-right:5px;max-height:25px;width:auto;}
+.title{width:200px;}
+.title span{text-overflow:ellipsis;display:inline-block;overflow:hidden;width:200px;}
+.title:before{border-left:16px solid transparent;border-top:32px solid white;}
+.title:after{border-right:16px solid transparent;border-bottom:32px solid white;}
+
+/** border-left:22px solid transparent;border-top:32px solid #222; **/
+/** border-right:22px solid transparent;border-bottom:32px solid #222; **/
+</style>
