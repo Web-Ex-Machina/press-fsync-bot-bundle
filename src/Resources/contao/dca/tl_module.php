@@ -63,7 +63,6 @@ $GLOBALS['TL_DCA']['tl_module']['fields']['pfs_schedule_groupBy'] = [
     'sql' => "varchar(16) NOT NULL default ''",
 ];
 $GLOBALS['TL_DCA']['tl_module']['fields']['pfs_schedule_nbGroupsBy'] = [
-    'default' => '',
     'exclude' => true,
     'inputType' => 'text',
     'eval' => ['rgxp' => 'digit', 'tl_class' => 'w50'],
