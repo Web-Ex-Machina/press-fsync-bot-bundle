@@ -155,6 +155,22 @@ class GeneratePageListener extends \Controller
                 echo 'checkdystopeekarticles';
             break;
 
+            case 'getruvonwishlistcount':
+
+                $ch = curl_init();
+                curl_setopt($ch, CURLOPT_URL, 'https://api.steampowered.com/IWishlistService/GetWishlistItemCount/v1/?steamid=76561198084359321');
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                $r = curl_exec($ch);
+                $r = json_decode($r);
+                curl_close($ch);
+
+                $objTemplate = new \FrontendTemplate('wishlist_ruvon');
+                $objTemplate->number = $r->response->count;
+                echo $objTemplate->parse();
+                die;
+
+            break;
+
             case 'getschedule':
                 $c = ['notcanceled' => true];
 

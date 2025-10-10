@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title></title>
+	<script src="https://kit.fontawesome.com/ff34d8cc76.js" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Advent+Pro%7COpen+Sans" media="all">
+<link rel="stylesheet" href="/assets/framway/build/css/vendor.css">
+<link rel="stylesheet" href="/assets/framway/build/css/framway.css">
+<style>body{background: grey;}</style>
+</head>
+<body>
+	<div class="countUpFW ce_rsce_counter color--white" data-startval="0" data-endval="<?= $this->number ?>" data-decimals="" data-duration="3" data-delay="0" data-prefix="" data-separator="true" data-decimal="">
+		<span class="countUpFW__num"><?= number_format($this->number, 0, ' ') ?></span>
+		<span class="countUpFW__unit"></span>
+		<div class="countUpFW__label"></div>
+	</div>
+
+
+<script src="/assets/framway/build/js/vendor.js"></script>
+<script src="/assets/framway/build/js/framway.js"></script>
+</body>
+</html>
+

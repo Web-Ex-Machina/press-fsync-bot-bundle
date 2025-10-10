@@ -1,0 +1,53 @@
+<h1>La wishlist de la honte</h1>
+<p>Entre ton steamID et compare ta wishlist au légendaire Ruvon, l'homme aux milliers de jeux !<p>
+<p>Si vous ne connaissez pas votre steamID, rendez-vous sur <a class="ft-blue" href="https://www.steamidfinder.com" target="_blank">ce site</a>, indiquez votre pseudo et récupérez la valeur steamID64 (Dec).</p>
+<form method="POST">
+	<input type="hidden" name="REQUEST_TOKEN" value="{{request_token}}" /> 
+	<input class="text" type="text" name="steamid" value="<?= $this->steamid ?: '' ?>" />
+	<input class="button" type="submit" value="Envoyer" />
+</form>
+
+<?php if ($this->score): ?>
+<hr />
+<div class="flex-justifycontent--center-alignitems--center">
+	<div class="h3 m-0">Vous</div>
+	<div class="h3 m-0 m-left m-right">/</div>
+	<div class="h3 m-0">Ruvon</div>
+</div>
+<div class="flex-justifycontent--center-alignitems--center">
+	<div class="countUpFW ce_rsce_counter m-0" data-startval="0" data-endval="<?= $this->score ?>" data-decimals="" data-duration="2" data-delay="0" data-prefix="" data-separator="true" data-decimal="">
+		<span class="countUpFW__num"><?= number_format($this->score, 0, ' ') ?></span>
+		<span class="countUpFW__unit"></span>
+		<div class="countUpFW__label"></div>
+	</div>
+	<div class="m-left m-right">/</div>
+	<div class="countUpFW ce_rsce_counter m-0" data-startval="0" data-endval="<?= $this->scoreRuvon ?>" data-decimals="" data-duration="2" data-delay="2" data-prefix="" data-separator="true" data-decimal="">
+		<span class="countUpFW__num"><?= number_format($this->scoreRuvon, 0, ' ') ?></span>
+		<span class="countUpFW__unit"></span>
+		<div class="countUpFW__label"></div>
+	</div>
+</div>
+
+<div class="m-top text-center">
+	<?php if ($this->diff < 0): ?>
+	<p>Vous avez plus de jeux dans votre wishlist que Ruvon, ça va ? Vous voulez en parler ?</p>
+	<?php elseif ($this->diff == 100): ?>
+	<p>Je t'ai reconnu Ruvon, arrête de jouer avec cette interface.</p>
+	<?php elseif ($this->diff > 75): ?>
+	<p>Votre wishlist correspond à <b><?= number_format($this->diff, 2) ?>%</b> de celle de Ruvon !</p>
+	<p>Pas loin de notre GOAT local, mais c'est pas tout à fait ça ! Allez donc wishlister tous les points & clicks sous Gen-AI.</p>
+	<?php elseif ($this->diff > 50): ?>
+	<p>Votre wishlist correspond à <b><?= number_format($this->diff, 2) ?>%</b> de celle de Ruvon !</p>
+	<p>Sur la bonne voie pour cramer un serveur Steam. Persévère !</p>
+	<?php elseif ($this->diff > 25): ?>
+	<p>Votre wishlist correspond à <b><?= number_format($this->diff, 2) ?>%</b> de celle de Ruvon !</p>
+	<p>Ca fait quand même un paquet de jeux non ? Et le backlog, il est avec vous dans la pièce ?</p>
+	<?php elseif ($this->diff > 10): ?>
+	<p>Votre wishlist correspond à <b><?= number_format($this->diff, 2) ?>%</b> de celle de Ruvon !</p>
+	<p>C'est un bon petit score dites-moi ! Vous avez mis Ball X Pit dans votre backlog ?</p>
+	<?php elseif ($this->diff > 0): ?>
+	<p>Votre wishlist correspond à <b><?= number_format($this->diff, 2) ?>%</b> de celle de Ruvon !</p>
+	<p>Vous êtes du genre raisonnable. C'est une grande qualité. Allez suivre l'émission "À vos souhaits" sur <a href="https://www.twitch.tv/ruvon_" target="_blank" title="Ruvon">twitch.tv/ruvon_</a> et ajoutez-donc quelques jeux à votre liste !</p>
+	<?php endif; ?>
+</div>
+<?php endif; ?>

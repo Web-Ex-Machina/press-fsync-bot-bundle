@@ -44,6 +44,7 @@ array_insert($GLOBALS['BE_MOD'], 1, [
 array_insert($GLOBALS['FE_MOD'], 2, [
     'press_fsync' => [
         'press_fsync_display_schedule' => WEM\PressFsyncBotBundle\Module\DisplaySchedule::class,
+        'press_shamelist_ruvon' => WEM\PressFsyncBotBundle\Module\ShamelistRuvon::class,
     ],
 ]);
 
