@@ -1,8 +1,8 @@
 <h1>La wishlist de la honte</h1>
 <p>Entre ton steamID et compare ta wishlist au légendaire Ruvon, l'homme aux milliers de jeux !<p>
-<p>Si vous ne connaissez pas votre steamID, rendez-vous sur <a class="ft-blue" href="https://www.steamidfinder.com" target="_blank">ce site</a>, indiquez votre pseudo et récupérez la valeur steamID64 (Dec).</p>
+<p>Si vous ne connaissez pas votre steamID, rendez-vous sur <a class="ft-blue" href="https://steamid.io" target="_blank">ce site</a>, indiquez votre pseudo et récupérez la valeur steamID64 (Dec).</p>
 <form method="POST">
-	<input type="hidden" name="REQUEST_TOKEN" value="{{request_token}}" /> 
+	<input type="hidden" name="REQUEST_TOKEN" value="<?= $this->requestToken ?>" /> 
 	<input class="text" type="text" name="steamid" value="<?= $this->steamid ?: '' ?>" />
 	<input class="button" type="submit" value="Envoyer" />
 </form>
