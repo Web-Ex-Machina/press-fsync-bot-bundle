@@ -7,3 +7,18 @@ services:
     WEM\PressFsyncBotBundle\:
         resource: ../src/
         exclude: ../src/{ContaoManager,DependencyInjection,Event}
+
+    wem.psync.service.config_service:
+        class: WEM\PressFsyncBotBundle\Service\ConfigService
+
+    wem.psync.service.discord_service:
+        class: WEM\PressFsyncBotBundle\Service\DiscordService
+
+    wem.psync.service.schedule_service:
+        class: WEM\PressFsyncBotBundle\Service\ScheduleService
+
+    wem.psync.service.task_service:
+        class: WEM\PressFsyncBotBundle\Service\TaskService
+
+    wem.psync.service.twitch_service:
+        class: WEM\PressFsyncBotBundle\Service\TwitchService
