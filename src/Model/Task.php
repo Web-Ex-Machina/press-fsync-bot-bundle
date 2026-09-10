@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace WEM\PressFsyncBotBundle\Model;
 
+use WEM\UtilsBundle\Model\Model;
+
 /**
  * Reads and writes items.
  */
-class Task extends \WEM\UtilsBundle\Model\Model
+class Task extends Model
 {
     /**
      * Table name.

@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace WEM\PressFsyncBotBundle\Model;
 
+use WEM\UtilsBundle\Model\Model;
+
 /**
  * Reads and writes items.
  */
-class TwitchEvent extends \WEM\UtilsBundle\Model\Model
+class TwitchEvent extends Model
 {
     /**
      * Table name.
@@ -32,7 +34,7 @@ class TwitchEvent extends \WEM\UtilsBundle\Model\Model
      *
      * @return array
      */
-    public static function formatStatement($strField, $varValue, $strOperator = '=')
+    public static function formatStatement(string $strField, $varValue, string $strOperator = '='): array
     {
         try {
             $arrColumns = [];

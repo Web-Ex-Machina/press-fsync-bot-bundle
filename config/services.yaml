@@ -1,0 +1,9 @@
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+        public: true
+    
+    WEM\PressFsyncBotBundle\:
+        resource: ../src/
+        exclude: ../src/{ContaoManager,DependencyInjection,Event,Module}

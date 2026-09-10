@@ -2,20 +2,13 @@
 
 declare(strict_types=1);
 
-/**
- * Press Fsync Bot Bundle for Contao Open Source CMS
- * Copyright (c) 2023 Web ex Machina
- *
- * @category ContaoBundle
- * @package  Web-Ex-Machina/press-fsync-bot-bundle
- * @author   Web ex Machina <contact@webexmachina.fr>
- * @link     https://github.com/Web-Ex-Machina/press-fsync-bot-bundle/
- */
+use Contao\DataContainer;
+use Contao\DC_Table;
 
 $GLOBALS['TL_DCA']['tl_pfs_user_config'] = [
     // Config
     'config' => [
-        'dataContainer' => Contao\DC_Table::class,
+        'dataContainer' => DC_Table::class,
         'enableVersioning' => true,
         'sql' => [
             'keys' => [
@@ -27,42 +20,26 @@ $GLOBALS['TL_DCA']['tl_pfs_user_config'] = [
     // List
     'list' => [
         'sorting' => [
-            'mode' => 1,
+            'mode' => DataContainer::MODE_SORTED,
             'fields' => ['username'],
-            'flag' => 1,
+            'flag' => DataContainer::SORT_INITIAL_LETTER_ASC,
             'panelLayout' => 'filter;search,limit',
         ],
         'label' => [
             'fields' => ['username'],
             'format' => '%s',
         ],
-        'global_operations' => [
-            'all' => [
-                'href' => 'act=select',
-                'class' => 'header_edit_all',
-                'attributes' => 'onclick="Backend.getScrollOffset()" accesskey="e"',
-            ],
-        ],
-        'operations' => [
-            'edit' => [
-                'href' => 'act=edit',
-                'icon' => 'edit.svg',
-            ],
-            'delete' => [
-                'href' => 'act=delete',
-                'icon' => 'delete.svg',
-                'attributes' => 'onclick="if(!confirm(\''.$GLOBALS['TL_LANG']['MSC']['deleteConfirm'].'\'))return false;Backend.getScrollOffset()"',
-            ],
-            'show' => [
-                'href' => 'act=show',
-                'icon' => 'show.svg',
-            ],
-        ],
+        'global_operations' => ['all'],
+        'operations' => ['edit', 'delete', 'show'],
     ],
 
     // Palettes
     'palettes' => [
-        '__selector__' => ['syncTwitchScheduleWithDiscordEvents', 'syncTwitchScheduleWithDiscordMessages', 'sendDiscordAlertWhenLiveOnTwitch'],
+        '__selector__' => [
+            'syncTwitchScheduleWithDiscordEvents', 
+            'syncTwitchScheduleWithDiscordMessages', 
+            'sendDiscordAlertWhenLiveOnTwitch'
+        ],
         'default' => '
             {global_legend},username;
             {twitch_legend},twitchUsername,twitchBroadcasterId;
@@ -82,7 +59,6 @@ $GLOBALS['TL_DCA']['tl_pfs_user_config'] = [
     // Fields
     'fields' => [
         'id' => [
-            'label' => ['ID'],
             'search' => true,
             'sql' => 'int(10) unsigned NOT NULL auto_increment',
         ],
@@ -101,10 +77,10 @@ $GLOBALS['TL_DCA']['tl_pfs_user_config'] = [
             'search' => true,
             'inputType' => 'text',
             'load_callback' => [
-                ['plenta.encryption', 'decrypt'],
+                ['wem.encryption_util', 'decrypt_b64'],
             ],
             'save_callback' => [
-                ['plenta.encryption', 'encrypt'],
+                ['wem.encryption_util', 'encrypt_b64'],
             ],
             'eval' => ['mandatory' => true, 'rgxp' => 'extnd', 'unique' => true, 'maxlength' => 255, 'tl_class' => 'w50'],
             'sql' => "varchar(255) NOT NULL default ''",
@@ -114,10 +90,10 @@ $GLOBALS['TL_DCA']['tl_pfs_user_config'] = [
             'search' => true,
             'inputType' => 'text',
             'load_callback' => [
-                ['plenta.encryption', 'decrypt'],
+                ['wem.encryption_util', 'decrypt_b64'],
             ],
             'save_callback' => [
-                ['plenta.encryption', 'encrypt'],
+                ['wem.encryption_util', 'encrypt_b64'],
             ],
             'eval' => ['mandatory' => true, 'rgxp' => 'extnd', 'unique' => true, 'maxlength' => 255, 'tl_class' => 'w50'],
             'sql' => "varchar(255) NOT NULL default ''",

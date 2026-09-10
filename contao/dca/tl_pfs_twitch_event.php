@@ -2,23 +2,17 @@
 
 declare(strict_types=1);
 
-/**
- * Press Fsync Bot Bundle for Contao Open Source CMS
- * Copyright (c) 2023 Web ex Machina
- *
- * @category ContaoBundle
- * @package  Web-Ex-Machina/press-fsync-bot-bundle
- * @author   Web ex Machina <contact@webexmachina.fr>
- * @link     https://github.com/Web-Ex-Machina/press-fsync-bot-bundle/
- */
+use Contao\DataContainer;
+use Contao\DC_Table;
 
 $GLOBALS['TL_DCA']['tl_pfs_twitch_event'] = [
     // Config
     'config' => [
-        'dataContainer' => Contao\DC_Table::class,
+        'dataContainer' => DC_Table::class,
         'sql' => [
             'keys' => [
                 'id' => 'primary',
+                'user' => 'index',
             ],
         ],
     ],
@@ -26,9 +20,9 @@ $GLOBALS['TL_DCA']['tl_pfs_twitch_event'] = [
     // List
     'list' => [
         'sorting' => [
-            'mode' => 1,
+            'mode' => DataContainer::MODE_SORTED,
             'fields' => ['user', 'start_time'],
-            'flag' => 1,
+            'flag' => DataContainer::SORT_INITIAL_LETTER_ASC,
             'panelLayout' => 'filter;search,limit',
         ],
         'label' => [
@@ -36,28 +30,8 @@ $GLOBALS['TL_DCA']['tl_pfs_twitch_event'] = [
             'format' => '%s [%s] - %s',
             'showColumns' => true,
         ],
-        'global_operations' => [
-            'all' => [
-                'href' => 'act=select',
-                'class' => 'header_edit_all',
-                'attributes' => 'onclick="Backend.getScrollOffset()" accesskey="e"',
-            ],
-        ],
-        'operations' => [
-            'edit' => [
-                'href' => 'act=edit',
-                'icon' => 'edit.svg',
-            ],
-            'delete' => [
-                'href' => 'act=delete',
-                'icon' => 'delete.svg',
-                'attributes' => 'onclick="if(!confirm(\''.$GLOBALS['TL_LANG']['MSC']['deleteConfirm'].'\'))return false;Backend.getScrollOffset()"',
-            ],
-            'show' => [
-                'href' => 'act=show',
-                'icon' => 'show.svg',
-            ],
-        ],
+        'global_operations' => ['all'],
+        'operations' => ['edit', 'delete', 'show'],
     ],
 
     // Palettes
