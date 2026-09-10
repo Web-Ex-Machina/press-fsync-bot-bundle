@@ -1,0 +1,3 @@
+wem.psync.controller:
+  resource: '../src/Controller'
+  type: attribute

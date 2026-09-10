@@ -1,4 +1,3 @@
 <div class="event">
 	<?= $this->title ?>
-
 </div>
