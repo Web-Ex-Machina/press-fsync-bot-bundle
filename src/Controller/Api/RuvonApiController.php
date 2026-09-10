@@ -12,20 +12,17 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\AsController;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Routing\Requirement\Requirement;
-use WEM\UtilsBundle\Classes\Encryption;
-use WEM\UtilsBundle\Classes\StringUtil;
 
 #[Route(
-    '/api/psync/schedule',
-    name: 'wem_api_psync_schedule',
+    '/api/psync/ruvon',
+    name: 'wem_api_psync/ruvon',
     defaults: ['_scope' => 'frontend', '_token_check' => false]
 )]
 #[AsController]
-class ScheduleApiController
+class RuvonApiController
 {
     public function __construct(
         private readonly ContaoFramework $framework, 
-        private readonly Encryption $encryption,
     ) {
         $this->framework->initialize();
     }
@@ -36,10 +33,19 @@ class ScheduleApiController
         return new Response('Hello World!');
     }
 
-    #[Route("/modal/generate-widget")]
-    public function displayModalGenerateWidget(Request $request): Response
+    #[Route("/wishlistcount")]
+    public function displayWishlistCount(Request $request): Response
     {
-        $objTemplate = new FrontendTemplate('mod_pfs_modal_generate_widget');
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, 'https://api.steampowered.com/IWishlistService/GetWishlistItemCount/v1/?steamid=76561198084359321');
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $r = curl_exec($ch);
+        $r = json_decode($r);
+        curl_close($ch);
+
+        $objTemplate = new FrontendTemplate('wishlist_ruvon');
+        $objTemplate->number = $r->response->count;
+        
         return new Response($objTemplate->parse());
     }
 }
