@@ -6,4 +6,4 @@ services:
     
     WEM\PressFsyncBotBundle\:
         resource: ../src/
-        exclude: ../src/{ContaoManager,DependencyInjection,Event,Module}
+        exclude: ../src/{ContaoManager,DependencyInjection,Event}
