@@ -3,37 +3,42 @@
     "description": "Press Fsync Bot Features for Contao Open Source CMS",
     "type": "contao-bundle",
     "license": "LGPL-3.0+",
-    "website" : "https://www.webexmachina.fr/",
     "authors": [
         {
             "name": "Web ex Machina",
             "homepage": "https://www.webexmachina.fr",
-            "role":"Developer"
+            "role": "Developer"
         }
     ],
-    "support":{
+    "support": {
+        "website": "https://www.webexmachina.fr/",
         "issues":"https://github.com/webexmachina/press-fsync-bot-bundle/issues",
         "source":"https://github.com/webexmachina/press-fsync-bot-bundle"
     },
     "require": {
-        "contao/core-bundle": "^5.3",
+        "contao/core-bundle": "^5.7",
         "webexmachina/contao-utils": "^2.0"
+    },
+    "require-dev": {
+        "contao/manager-plugin": "@stable",
+        "contao/easy-coding-standard": "@stable",
+        "rector/rector": "@stable",
+        "phpstan/phpstan": "@stable",
+        "contao/contao-rector": "dev-main"
     },
     "autoload":{
         "psr-4": {
             "WEM\\PressFsyncBotBundle\\": "src/"
-        },
-        "classmap": [
-            "src/Resources/contao/"
-        ],
-        "exclude-from-classmap": [
-            "src/Resources/contao/config/",
-            "src/Resources/contao/dca/",
-            "src/Resources/contao/languages/",
-            "src/Resources/contao/templates/"
-        ]
+        }
     },
     "extra":{
         "contao-manager-plugin": "WEM\\PressFsyncBotBundle\\ContaoManager\\Plugin"
+    },
+    "config": {
+        "allow-plugins": {
+            "contao-components/installer": false,
+            "contao/manager-plugin": false,
+            "contao-community-alliance/composer-plugin": true
+        }
     }
 }
