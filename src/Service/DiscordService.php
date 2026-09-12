@@ -4,25 +4,59 @@ declare(strict_types=1);
 
 namespace WEM\PressFsyncBotBundle\Service;
 
+use Contao\Config;
+use Contao\Environment;
+use WEM\PressFsyncBotBundle\Model\DiscordEvent;
+use WEM\PressFsyncBotBundle\Model\DiscordMessage;
 use WEM\PressFsyncBotBundle\Model\Task;
 use WEM\PressFsyncBotBundle\Model\TwitchEvent;
+use WEM\UtilsBundle\Classes\Encryption;
 
 class DiscordService
 {
-    protected array $cache = ['server_events' => []];
+    protected string $token = "";
+    protected array $cache = [];
+    protected array $arrResults = [];
 
     public function __construct(
         private readonly ConfigService $config,
+        private readonly Encryption $encryption,
         private readonly TaskService $tasker,
+        private readonly TwitchService $twitch,
     ) {
+        $this->token = $this->encryption->decrypt_b64(Config::get('pfsDiscordToken'));
+    }
+
+    public function __set(mixed $name, mixed $value): void
+    {
+        $this->{$name} = $value;
+    }
+
+    public function __get(mixed $name): mixed
+    {
+        return $this->{$name};
+    }
+
+    public function getResults(): array
+    {
+        return $this->arrResults;
     }
 
     // Sync Database according to Twitch :
     // Add task to create Discord Event if it exists in Database but not in Discord
     // Add task to update Discord Event if it exists in Database and in Discord and it should be updated
     // Add task to delete Discord Event if it exists in Discord but not in Database
-    protected function syncEvents(): void
+    public function syncEvents(): void
     {
+        $this->arrResults = [
+            'created' => 0,
+            'updated' => 0,
+            'deleted' => 0,
+        ];
+        $this->cache = [
+            'events_servers' => [],
+        ];
+
         // Retrieve the events
         $objEvents = TwitchEvent::findItems(['start_time_before' => strtotime("+1 week"), 'notcanceled' => true]);
 
@@ -54,6 +88,8 @@ class DiscordService
                         $data,
                         'POST'
                     );
+
+                    $this->arrResults['created']++;
                 }
                 // Create task if it does exists in Database but it should be updated
                 elseif ($this->shouldEventBeUpdated($data, $objDiscordEvent)) {
@@ -64,6 +100,8 @@ class DiscordService
                         $data,
                         'PATCH'
                     );
+
+                    $this->arrResults['updated']++;
                 }
 
                 $arrServers[$s][] = $objEvents->id;
@@ -78,7 +116,7 @@ class DiscordService
             foreach ($arrServers as $s => $events) {
                 // Retrieve Discord events for this server
                 // Litle cache system so we do not repeat unecessary requests
-                if (is_array($this->cache['events_servers']) && !array_key_exists($s, $this->cache['events_servers'])) {
+                if (!array_key_exists($s, $this->cache['events_servers'])) {
                     $objDiscordEvents = $this->request(
                         sprintf('guilds/%s/scheduled-events', $s),
                         [],
@@ -103,6 +141,8 @@ class DiscordService
                                 'DELETE'
                             );
 
+                            $this->arrResults['deleted']++;
+
                             continue;
                         }
 
@@ -118,6 +158,8 @@ class DiscordService
                                 [],
                                 'DELETE'
                             );
+                            
+                            $this->arrResults['deleted']++;
                         }
                     }
                 }
@@ -138,6 +180,8 @@ class DiscordService
                             [],
                             'DELETE'
                         );
+
+                        $this->arrResults['deleted']++;
                     }
                 }
             }
@@ -146,8 +190,14 @@ class DiscordService
 
     // Format the Discord message, according to the next streams
     // Add Task to create/update Discord message
-    protected function syncMessages()
+    public function syncMessages(): void
     {
+        $this->arrResults = [
+            'created' => 0,
+            'updated' => 0,
+            'deleted' => 0,
+        ];
+
         // Retrieve the events
         $objEvents = TwitchEvent::findItems(['start_time_after' => time(), 'notcanceled' => true]);
 
@@ -156,18 +206,16 @@ class DiscordService
             return;
         }
 
-        $encryptionService = System::getContainer()->get('plenta.encryption');
-        $arrConfigs = $this->getTwitchChannels();
+        $arrConfigs = $this->twitch->getChannels();
         $arrEventsForMsg = [];
         $arrEventsIds = [];
 
-
         // Store config & parse events
         while ($objEvents->next()) {
-            $username = $encryptionService->decrypt($objEvents->getRelated('user')->twitchUsername);
+            $username = $this->encryption->decrypt_b64($objEvents->getRelated('user')->twitchUsername);
 
             // Store the config for later
-            $arrEventsForMsg[$username][] = date("d/m (H\hi)", $objEvents->start_time) . " - " . $objEvents->title;
+            $arrEventsForMsg[$username][] = date("d/m (H\hi)", (int) $objEvents->start_time) . " - " . $objEvents->title;
             $arrEventsIds[$username][] = $objEvents->id;
         }
 
@@ -187,7 +235,7 @@ class DiscordService
                 //'timestamp' => date("c"),
                 'color' => hexdec($arrConfig['color'] ?: "FFFFFF"),
                 'thumbnail' => [
-                    'url' => \Environment::get('base') . $arrConfig['avatar']
+                    'url' => Environment::get('base') . $arrConfig['avatar']
                 ]
             ];
 
@@ -219,7 +267,7 @@ class DiscordService
         }
     }
 
-    protected function shouldEventBeUpdated($event, $objDiscordEvent)
+    protected function shouldEventBeUpdated(array $event, DiscordEvent $objDiscordEvent): bool
     {
         $objTwitchEvent = TwitchEvent::findByPk($event['event']);
 
@@ -251,7 +299,7 @@ class DiscordService
         return false;
     }
 
-    protected function request($endpoint, $data = [], $method = 'GET')
+    protected function request(string $endpoint, array $data = [], string $method = 'GET'): array
     {
         # Set endpoint
         $url = "https://discord.com/api/" . $endpoint;
@@ -265,7 +313,7 @@ class DiscordService
             CURLOPT_URL            => $url,
             CURLOPT_HEADER         => 1,
             CURLOPT_HTTPHEADER     => array(
-                'Authorization: Bot ' . $this->strDiscordToken,
+                'Authorization: Bot ' . $this->token,
                 "Content-Type: application/json",
                 "Accept: application/json"
             ),
@@ -309,8 +357,9 @@ class DiscordService
             }
 
             if (!isset($middle[1])) {
-                $middle[1] = null;
+                $middle[1] = "";
             }
+
             $headers[trim($middle[0])] = trim($middle[1]);
         }
 

@@ -62,7 +62,7 @@ class TaskService
         );
     }
 
-    protected function create(string $strType, string $strTask, string $strEndpoint, array $arrData, string $strMethod): void
+    public function create(string $strType, string $strTask, string $strEndpoint, array $arrData, string $strMethod): void
     {
         // Add a way to skip the task system for debug purposes
         if ($this->isDebug()) {

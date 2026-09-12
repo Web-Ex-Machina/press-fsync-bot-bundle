@@ -70,6 +70,15 @@
         <source>Enter the event category name</source>
         <target>Saisir le nom de catégorie de l'événement</target>
       </trans-unit>
+
+      <trans-unit id="tl_pfs_discord_event.syncEvents.0">
+        <source>Sync events</source>
+        <target>Synchroniser les événements</target>
+      </trans-unit>
+      <trans-unit id="tl_pfs_discord_event.syncMessages.0">
+        <source>Sync messages</source>
+        <target>Synchroniser les messages</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

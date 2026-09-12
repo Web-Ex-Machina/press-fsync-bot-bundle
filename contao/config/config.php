@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 use Contao\ArrayUtil;
+use WEM\PressFsyncBotBundle\Controller\Backend\DiscordEventController;
+use WEM\PressFsyncBotBundle\Controller\Backend\DiscordMessageController;
 use WEM\PressFsyncBotBundle\Controller\Backend\TwitchEventController;
 use WEM\PressFsyncBotBundle\Model\DiscordEvent;
 use WEM\PressFsyncBotBundle\Model\Task;
@@ -22,10 +24,12 @@ ArrayUtil::arrayInsert(
             ],
             'press_fsync_twitch_events' => [
                 'tables' => ['tl_pfs_twitch_event'],
-                'syncEvents' => [TwitchEventController::class, 'syncEvents']
+                'syncEvents' => [TwitchEventController::class, 'syncEvents'],
             ],
             'press_fsync_discord_events' => [
                 'tables' => ['tl_pfs_discord_event'],
+                'syncEvents' => [DiscordEventController::class, 'syncEvents'],
+                // 'syncMessages' => [DiscordMessageController::class, 'syncMessages'],
             ],
             'press_fsync_tasks' => [
                 'tables' => ['tl_pfs_task'],
@@ -33,11 +37,6 @@ ArrayUtil::arrayInsert(
         ],
     ]
 );
-
-/*
- * Hooks
- */
-// $GLOBALS['TL_HOOKS']['generatePage'][] = [WEM\PressFsyncBotBundle\Event\GeneratePageListener::class, 'catchApiRequest'];
 
 /*
  * Models
