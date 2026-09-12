@@ -151,48 +151,6 @@ class GeneratePageListener extends \Controller
                 echo 'checkinn42articles';
             break;
 
-            case 'getschedule':
-                $c = ['notcanceled' => true];
-
-                if(1 !== (int) Input::get('keepCurrent')) {
-                    $c['start_time_after'] = time();
-                }
-
-                $limit = Input::get('limit') ?: 3;
-                $template = Input::get('template') ?: 'default';
-
-                $objItems = TwitchEvent::findItems($c, $limit);
-                $arrEvents = [];
-
-                if (!$objItems) {
-                    echo '';
-                    die;
-                }
-
-                $encryptionService = System::getContainer()->get('plenta.encryption');
-                $objTemplate = new \FrontendTemplate('schedule_' . $template);
-
-                while ($objItems->next()) {
-                    $u = $objItems->getRelated('user');
-                    $logo = \FilesModel::findByUuid($u->syncTwitchScheduleWithDiscordMessagesThumbnail);
-
-                    $e = $objItems->row();
-                    $e['logo'] = $logo ? \Environment::get('base') . '/' . $logo->path : null;
-                    $e['username'] = $encryptionService->decrypt($u->twitchUsername);
-                    $e['url'] = 'https://www.twitch.tv/' . $encryptionService->decrypt($u->twitchUsername);
-                    $e['datetime'] = date('d/m/Y à H:i', $objItems->start_time);
-                    $e['date'] = date('d/m/Y', $objItems->start_time);
-                    $e['date_simple'] = date('d/m', $objItems->start_time);
-                    $e['time'] = date('H\hi', $objItems->start_time);
-
-                    $arrEvents[] = $e;
-                }
-
-                $objTemplate->items = $arrEvents;
-                echo $objTemplate->parse();
-                die;
-            break;
-
             case 'executetasks':
                 // Hardlock the timeout
                 set_time_limit(60);

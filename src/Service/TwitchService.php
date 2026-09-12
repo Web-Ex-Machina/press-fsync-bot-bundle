@@ -4,25 +4,47 @@ declare(strict_types=1);
 
 namespace WEM\PressFsyncBotBundle\Service;
 
+use Contao\Config;
+use DateTime;
+use DateTimeZone;
 use WEM\PressFsyncBotBundle\Model\Task;
+use WEM\PressFsyncBotBundle\Model\TwitchEvent;
 use WEM\PressFsyncBotBundle\Model\UserConfig;
 use WEM\UtilsBundle\Classes\Encryption;
 
 class TwitchService
 {
-    protected string $clientId;
-    protected string $clientSecret;
-    protected string $token;
-    protected string $tokenType;
-    protected array $arrTwitchCache = ['categories' => []];
+    protected string $clientId = "";
+    protected string $clientSecret = "";
+    protected string $token = "";
+    protected string $tokenType = "";
+    protected array $arrCache = ['categories' => []];
+    protected array $arrResults = [];
 
     public function __construct(
         private readonly ConfigService $config,
         private readonly Encryption $encryption,
     ) {
+        $this->clientId = $this->encryption->decrypt_b64(Config::get('pfsTwitchClientId'));
+        $this->clientSecret = $this->encryption->decrypt_b64(Config::get('pfsTwitchClientSecret'));
     }
 
-    public function getChannels()
+    public function __set(mixed $name, mixed $value): void
+    {
+        $this->{$name} = $value;
+    }
+
+    public function __get(mixed $name): mixed
+    {
+        return $this->{$name};
+    }
+
+    public function getResults(): array
+    {
+        return $this->arrResults;
+    }
+
+    public function getChannels(): array
     {
         $objConfigs = UserConfig::findByTwitchSyncSchedulePlanned();
 
@@ -32,18 +54,21 @@ class TwitchService
 
         $arrConfigs = [];
         while ($objConfigs->next()) {
-            $username = $this->encryption->decrypt($objConfigs->twitchUsername);
-
-            $arrConfigs[$username] = $this->config->parse($objConfigs->current());
+            $arrConfigs[] = $this->config->parse($objConfigs->current());
         }
 
         return $arrConfigs;
     }
 
-    protected function syncEvents()
+    public function syncEvents(): void
     {
         $arrChannels = $this->getChannels();
         $arrEvents = [];
+        $this->arrResults = [
+            'created' => 0,
+            'updated' => 0,
+            'deleted' => 0,
+        ];
 
         foreach ($arrChannels as $t) {
             // First, get the next events from the Twitch schedule
@@ -88,6 +113,7 @@ class TwitchService
         if ($objDatabaseEvents && 0 < $objDatabaseEvents->count()) {
             while ($objDatabaseEvents->next()) {
                 $objDatabaseEvents->delete();
+                $this->arrResults['deleted']++;
             }
         }
     }
@@ -98,13 +124,19 @@ class TwitchService
      * @param  array $t     User config from database
      * @return TwitchEvent
      */
-    protected function syncEvent($event, $t)
+    protected function syncEvent(array $event, array $t): TwitchEvent
     {
         try {
             $objEvent = TwitchEvent::findItems(['twitch_event' => $event['id']], 1);
 
             if (!$objEvent) {
                 $objEvent = new TwitchEvent();
+
+                $this->arrResults['created']++;
+            } else {
+                $objEvent = $objEvent->current();
+
+                $this->arrResults['updated']++;
             }
 
             $objEvent->tstamp = time();
@@ -115,10 +147,12 @@ class TwitchService
             $objEvent->title = addslashes($event['title']);
             $objEvent->is_recurring = $event['is_recurring'] ? 1 : '';
             $objEvent->canceled_until = $this->getTimestampFromDate($event['canceled_until']);
+
             if ($event['category']) {
                 $objEvent->category_id = $event['category']['id'] ?: 0;
                 $objEvent->category_name = $event['category']['name'] ?: '';
             }
+
             $objEvent->save();
 
             return $objEvent;
@@ -131,13 +165,12 @@ class TwitchService
      * Parse a Twitch event in an useful array
      *
      * @param  array   $event    Data from Twitch
-     * @param  array   $channel  Twitch channel
      * @param  integer $width    Picture width wanted
      * @param  integer $height   Picture height wanted
      *
      * @return array
      */
-    protected function parseEvent($event, $width = 800, $height = 320)
+    protected function parseEvent(array $event, int $width = 800, int $height = 320): array
     {
         $title = $event['title'] ?: $event['category']['name'];
 
@@ -182,7 +215,7 @@ class TwitchService
         return $data;
     }
 
-    protected function getToken()
+    protected function getToken(): array
     {
         if (!$this->tokenType && !$this->tokenType) {
             $data = [
@@ -215,9 +248,9 @@ class TwitchService
         ];
     }
 
-    public function request($endpoint, $data = [], $method = 'GET')
+    public function request(string $endpoint, array $data = [], string $method = 'GET'): array
     {
-        $token = $this->gettoken();
+        $token = $this->getToken();
         $url = 'https://api.twitch.tv/' . $endpoint;
 
         $ch = curl_init();
@@ -257,14 +290,14 @@ class TwitchService
      * @param  string $date
      * @return int
      */
-    protected function getTimestampFromDate($date)
+    protected function getTimestampFromDate(string|null $date): ?int
     {
         if (!$date) {
             return null;
         }
 
-        $objDate = \DateTime::createFromFormat(DATE_ATOM, $date, new \DateTimeZone('UTC'));
-        $objDate->setTimezone(new \DateTimeZone('Europe/Paris'));
+        $objDate = DateTime::createFromFormat(DATE_ATOM, $date, new DateTimeZone('UTC'));
+        $objDate->setTimezone(new DateTimeZone('Europe/Paris'));
         return $objDate->getTimestamp();
     }
 }

@@ -86,6 +86,11 @@
         <source>Check if this event is a recurring event</source>
         <target>Cocher si l'événement est récurrent</target>
       </trans-unit>
+
+      <trans-unit id="tl_pfs_twitch_event.syncEvents.0">
+        <source>Sync events</source>
+        <target>Synchroniser les agendas</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

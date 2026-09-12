@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Contao\ArrayUtil;
+use WEM\PressFsyncBotBundle\Controller\Backend\TwitchEventController;
 use WEM\PressFsyncBotBundle\Model\DiscordEvent;
 use WEM\PressFsyncBotBundle\Model\Task;
 use WEM\PressFsyncBotBundle\Model\TwitchEvent;
@@ -21,6 +22,7 @@ ArrayUtil::arrayInsert(
             ],
             'press_fsync_twitch_events' => [
                 'tables' => ['tl_pfs_twitch_event'],
+                'syncEvents' => [TwitchEventController::class, 'syncEvents']
             ],
             'press_fsync_discord_events' => [
                 'tables' => ['tl_pfs_discord_event'],

@@ -30,7 +30,13 @@ $GLOBALS['TL_DCA']['tl_pfs_twitch_event'] = [
             'format' => '%s [%s] - %s',
             'showColumns' => true,
         ],
-        'global_operations' => ['all'],
+        'global_operations' => [
+            'all',
+            'syncEvents' => [
+                'href' => 'key=syncEvents',
+                'icon' => 'alert',
+            ],
+        ],
         'operations' => ['edit', 'delete', 'show'],
     ],
 
