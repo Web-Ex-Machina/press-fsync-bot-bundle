@@ -6,6 +6,7 @@ namespace WEM\PressFsyncBotBundle\Service;
 
 use WEM\PressFsyncBotBundle\Model\Task;
 use WEM\PressFsyncBotBundle\Model\UserConfig;
+use WEM\UtilsBundle\Classes\Encryption;
 
 class TwitchService
 {
