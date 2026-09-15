@@ -20,12 +20,14 @@ PaletteManipulator::create()
     ->addField('pfsTwitchClientSecret', 'press_fsync_bot_legend', PaletteManipulator::POSITION_APPEND)
     ->addField('pfsDiscordToken', 'press_fsync_bot_legend', PaletteManipulator::POSITION_APPEND)
     ->addField('pfsRawgApiSecret', 'press_fsync_bot_legend', PaletteManipulator::POSITION_APPEND)
+    ->addField('pfsExecuteTasksJob', 'press_fsync_bot_legend', PaletteManipulator::POSITION_APPEND)
+    ->addField('pfsSyncSchedulesJob', 'press_fsync_bot_legend', PaletteManipulator::POSITION_APPEND)
     ->applyToPalette('default', 'tl_settings')
 ;
 
 $GLOBALS['TL_DCA']['tl_settings']['fields']['pfsTwitchClientId'] = [
     'inputType' => 'text',
-    'eval' => ['tl_class' => 'w50'],
+    'eval' => ['tl_class' => 'w25'],
     'load_callback' => [
         ['wem.encryption_util', 'decrypt_b64'],
     ],
@@ -35,7 +37,7 @@ $GLOBALS['TL_DCA']['tl_settings']['fields']['pfsTwitchClientId'] = [
 ];
 $GLOBALS['TL_DCA']['tl_settings']['fields']['pfsTwitchClientSecret'] = [
     'inputType' => 'text',
-    'eval' => ['tl_class' => 'w50'],
+    'eval' => ['tl_class' => 'w25'],
     'load_callback' => [
         ['wem.encryption_util', 'decrypt_b64'],
     ],
@@ -45,7 +47,7 @@ $GLOBALS['TL_DCA']['tl_settings']['fields']['pfsTwitchClientSecret'] = [
 ];
 $GLOBALS['TL_DCA']['tl_settings']['fields']['pfsDiscordToken'] = [
     'inputType' => 'text',
-    'eval' => ['tl_class' => 'w50'],
+    'eval' => ['tl_class' => 'w25'],
     'load_callback' => [
         ['wem.encryption_util', 'decrypt_b64'],
     ],
@@ -55,11 +57,25 @@ $GLOBALS['TL_DCA']['tl_settings']['fields']['pfsDiscordToken'] = [
 ];
 $GLOBALS['TL_DCA']['tl_settings']['fields']['pfsRawgApiSecret'] = [
     'inputType' => 'text',
-    'eval' => ['tl_class' => 'w50'],
+    'eval' => ['tl_class' => 'w25'],
     'load_callback' => [
         ['wem.encryption_util', 'decrypt_b64'],
     ],
     'save_callback' => [
         ['wem.encryption_util', 'encrypt_b64'],
     ],
+];
+$GLOBALS['TL_DCA']['tl_settings']['fields']['pfsExecuteTasksJob'] = [
+    'default' => 'prod',
+    'inputType' => 'select',
+    'options' => ['prod', 'dev'],
+    'reference' => &$GLOBALS['TL_LANG']['tl_settings']['pfsExecuteTasksJob'],
+    'eval' => ['mandatory' => true, 'tl_class' => 'w25'],
+];
+$GLOBALS['TL_DCA']['tl_settings']['fields']['pfsSyncSchedulesJob'] = [
+    'default' => 'prod',
+    'inputType' => 'select',
+    'options' => ['prod', 'dev'],
+    'reference' => &$GLOBALS['TL_LANG']['tl_settings']['pfsSyncSchedulesJob'],
+    'eval' => ['mandatory' => true, 'tl_class' => 'w25'],
 ];

@@ -3,6 +3,11 @@ services:
         autowire: true
         autoconfigure: true
         public: true
+
+    _instanceof:
+        Contao\CoreBundle\Framework\FrameworkAwareInterface:
+            calls:
+                - [setFramework, ['@contao.framework']]
     
     WEM\PressFsyncBotBundle\:
         resource: ../src/
