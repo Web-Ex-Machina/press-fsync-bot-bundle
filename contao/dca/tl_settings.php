@@ -27,39 +27,39 @@ $GLOBALS['TL_DCA']['tl_settings']['fields']['pfsTwitchClientId'] = [
     'inputType' => 'text',
     'eval' => ['tl_class' => 'w50'],
     'load_callback' => [
-        ['plenta.encryption', 'decrypt'],
+        ['wem.encryption_util', 'decrypt_b64'],
     ],
     'save_callback' => [
-        ['plenta.encryption', 'encrypt'],
+        ['wem.encryption_util', 'encrypt_b64'],
     ],
 ];
 $GLOBALS['TL_DCA']['tl_settings']['fields']['pfsTwitchClientSecret'] = [
     'inputType' => 'text',
     'eval' => ['tl_class' => 'w50'],
     'load_callback' => [
-        ['plenta.encryption', 'decrypt'],
+        ['wem.encryption_util', 'decrypt_b64'],
     ],
     'save_callback' => [
-        ['plenta.encryption', 'encrypt'],
+        ['wem.encryption_util', 'encrypt_b64'],
     ],
 ];
 $GLOBALS['TL_DCA']['tl_settings']['fields']['pfsDiscordToken'] = [
     'inputType' => 'text',
     'eval' => ['tl_class' => 'w50'],
     'load_callback' => [
-        ['plenta.encryption', 'decrypt'],
+        ['wem.encryption_util', 'decrypt_b64'],
     ],
     'save_callback' => [
-        ['plenta.encryption', 'encrypt'],
+        ['wem.encryption_util', 'encrypt_b64'],
     ],
 ];
 $GLOBALS['TL_DCA']['tl_settings']['fields']['pfsRawgApiSecret'] = [
     'inputType' => 'text',
     'eval' => ['tl_class' => 'w50'],
     'load_callback' => [
-        ['plenta.encryption', 'decrypt'],
+        ['wem.encryption_util', 'decrypt_b64'],
     ],
     'save_callback' => [
-        ['plenta.encryption', 'encrypt'],
+        ['wem.encryption_util', 'encrypt_b64'],
     ],
 ];
