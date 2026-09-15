@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace WEM\PressFsyncBotBundle\Service;
 
+use Contao\Database;
 use WEM\PressFsyncBotBundle\Model\DiscordEvent;
 use WEM\PressFsyncBotBundle\Model\Task;
 use WEM\PressFsyncBotBundle\Model\TwitchEvent;
@@ -12,6 +13,22 @@ use WEM\UtilsBundle\Classes\StringUtil;
 class TaskService
 {
     protected bool $debug = false;
+    protected array $arrResults = [];
+
+    public function __set(mixed $name, mixed $value): void
+    {
+        $this->{$name} = $value;
+    }
+
+    public function __get(mixed $name): mixed
+    {
+        return $this->{$name};
+    }
+
+    public function getResults(): array
+    {
+        return $this->arrResults;
+    }
 
     public function isDebug(): bool
     {
@@ -23,8 +40,21 @@ class TaskService
         $this->debug = (bool) $debug;
     }
 
+    public function cleanTasks(): void
+    {
+        Database::getInstance()->query("TRUNCATE tl_pfs_task");
+    }
+
     public function executeTasks(): void
     {
+        $this->arrResults = [
+            'success' => [],
+            'errors' => [],
+            'errors_details' => [],
+            'debug' => [],
+            'pending' => 0,
+        ];
+
         // Hardlock the timeout
         set_time_limit(60);
 
@@ -35,14 +65,24 @@ class TaskService
             return;
         }
 
+        $this->arrResults['pending'] = $objTasks->count();
+
         while ($objTasks->next()) {
             // If the task did well, delete from table
             if ($this->executeTask($objTasks->current())) {
-                $objTasks->delete();
+                $this->arrResults['success'][] = $objTasks->current();
+
+                if (!$this->isDebug()) {
+                    $objTasks->delete();
+                }
 
                 // pause
                 sleep(1);
+            } else {
+                $this->arrResults['errors'][] = $objTasks->current();
             }
+
+            $this->arrResults['pending']--;
         }
     }
 
@@ -66,15 +106,14 @@ class TaskService
     {
         // Add a way to skip the task system for debug purposes
         if ($this->isDebug()) {
-            echo sprintf(
+            $this->arrResults['debug'][] = sprintf(
                 'Add Task %s - %s - %s - %s - %s',
                 $strType,
                 $strTask,
                 $strEndpoint,
-                implode(' | ', $arrData),
+                json_encode($data),
                 $strMethod
             );
-            echo '<hr />';
 
             return;
         }
@@ -99,6 +138,19 @@ class TaskService
         }
         $method = $objTask->method ?: "GET";
         $blnSuccess = true;
+
+        if ($this->isDebug()) {
+            $this->arrResults['debug'][] = sprintf(
+                'Execute Task %s - %s - %s - %s - %s',
+                $objTask->type,
+                $objTask->task,
+                $objTask->endpoint,
+                json_encode($data),
+                $method
+            );
+
+            return true;
+        }
 
         switch ($objTask->type) {
             case 'discord':

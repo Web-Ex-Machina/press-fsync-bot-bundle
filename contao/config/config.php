@@ -6,6 +6,7 @@ use Contao\ArrayUtil;
 use WEM\PressFsyncBotBundle\Controller\Backend\DiscordEventController;
 use WEM\PressFsyncBotBundle\Controller\Backend\DiscordMessageController;
 use WEM\PressFsyncBotBundle\Controller\Backend\TwitchEventController;
+use WEM\PressFsyncBotBundle\Controller\Backend\TaskController;
 use WEM\PressFsyncBotBundle\Model\DiscordEvent;
 use WEM\PressFsyncBotBundle\Model\Task;
 use WEM\PressFsyncBotBundle\Model\TwitchEvent;
@@ -33,6 +34,9 @@ ArrayUtil::arrayInsert(
             ],
             'press_fsync_tasks' => [
                 'tables' => ['tl_pfs_task'],
+                'executeTasks' => [TaskController::class, 'executeTasks'],
+                'executeTasksDryRun' => [TaskController::class, 'executeTasksDryRun'],
+                'cleanTasks' => [TaskController::class, 'cleanTasks'],
             ],
         ],
     ]

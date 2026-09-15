@@ -54,6 +54,19 @@
         <source>Enter the task method</source>
         <target>Saisir la méthode de la tâche</target>
       </trans-unit>
+
+      <trans-unit id="tl_pfs_task.executeTasks.0">
+        <source>Execute tasks</source>
+        <target>Exécuter les tâches</target>
+      </trans-unit>
+      <trans-unit id="tl_pfs_task.executeTasksDryRun.0">
+        <source>Execute tasks (dry run)</source>
+        <target>Exécuter les tâches (dry run)</target>
+      </trans-unit>
+      <trans-unit id="tl_pfs_task.cleanTasks.0">
+        <source>Clean tasks</source>
+        <target>Nettoyer les tâches</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

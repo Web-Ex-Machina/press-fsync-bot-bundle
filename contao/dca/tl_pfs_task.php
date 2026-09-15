@@ -29,7 +29,21 @@ $GLOBALS['TL_DCA']['tl_pfs_task'] = [
             'format' => '[%s] %s / %s / %s',
             'showColumns' => true,
         ],
-        'global_operations' => ['all'],
+        'global_operations' => [
+            'all',
+            'executeTasks' => [
+                'href' => 'key=executeTasks',
+                'icon' => 'alert',
+            ],
+            'executeTasksDryRun' => [
+                'href' => 'key=executeTasksDryRun',
+                'icon' => 'info',
+            ],
+            'cleanTasks' => [
+                'href' => 'key=cleanTasks',
+                'icon' => 'delete',
+            ],
+        ],
         'operations' => ['edit', 'delete', 'show'],
     ],
     'palettes' => [
