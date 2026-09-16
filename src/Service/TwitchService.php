@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace WEM\PressFsyncBotBundle\Service;
 
 use Contao\Config;
+use Contao\CoreBundle\Framework\ContaoFramework;
 use DateTime;
 use DateTimeZone;
 use WEM\PressFsyncBotBundle\Model\Task;
@@ -22,9 +23,12 @@ class TwitchService
     protected array $arrResults = [];
 
     public function __construct(
+        private readonly ContaoFramework $framework, 
         private readonly ConfigService $config,
         private readonly Encryption $encryption,
     ) {
+        $this->framework->initialize();
+        
         $this->clientId = $this->encryption->decrypt_b64(Config::get('pfsTwitchClientId'));
         $this->clientSecret = $this->encryption->decrypt_b64(Config::get('pfsTwitchClientSecret'));
     }

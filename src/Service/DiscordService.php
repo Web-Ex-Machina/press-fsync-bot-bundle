@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace WEM\PressFsyncBotBundle\Service;
 
 use Contao\Config;
+use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\Environment;
 use WEM\PressFsyncBotBundle\Model\DiscordEvent;
 use WEM\PressFsyncBotBundle\Model\DiscordMessage;
@@ -20,10 +21,13 @@ class DiscordService
 
     public function __construct(
         private readonly ConfigService $config,
+        private readonly ContaoFramework $framework, 
         private readonly Encryption $encryption,
         private readonly TaskService $tasker,
         private readonly TwitchService $twitch,
     ) {
+        $this->framework->initialize();
+
         $this->token = $this->encryption->decrypt_b64(Config::get('pfsDiscordToken'));
     }
 
@@ -370,7 +374,7 @@ class DiscordService
 
         // If we hit the API limit, sleep for a while and relaunch the request
         if (is_array($response) && array_key_exists('retry_after', $response)) {
-            sleep(round($response['retry_after']));
+            sleep((int) round($response['retry_after']));
 
             $response = $this->request($endpoint, $data, $method);
         }
