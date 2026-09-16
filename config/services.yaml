@@ -11,7 +11,7 @@ services:
     
     WEM\PressFsyncBotBundle\:
         resource: ../src/
-        exclude: ../src/{ContaoManager,DependencyInjection,Event}
+        exclude: ../src/{ContaoManager,DependencyInjection}
 
     wem.psync.service.config_service:
         class: WEM\PressFsyncBotBundle\Service\ConfigService
