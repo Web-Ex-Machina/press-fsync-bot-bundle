@@ -287,7 +287,7 @@ class DisplayScheduleController extends AbstractFrontendModuleController
         if (in_array('pid', $arrFilters)) {
             // User filter
             $arrOptions = [];
-            foreach ($this->pids as $c) {
+            foreach ($this->model->pids as $c) {
                 $objConfig = UserConfig::findByPk($c);
 
                 $arrOptions[] = [
@@ -301,7 +301,7 @@ class DisplayScheduleController extends AbstractFrontendModuleController
                 'type' => "select",
                 'name' => "users[]",
                 'label' => $GLOBALS['TL_LANG']['PFS']['SCHEDULE']['FILTERS']['users'],
-                'placeholder' => $GGLOBALS['TL_LANG']['PFS']['SCHEDULE']['FILTERS']['usersPlaceholder'],
+                'placeholder' => $GLOBALS['TL_LANG']['PFS']['SCHEDULE']['FILTERS']['usersPlaceholder'],
                 'value' => $this->getQueryParameter('users') ?: '',
                 'options' => $arrOptions,
                 'multiple' => true,

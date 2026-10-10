@@ -7,6 +7,10 @@
 	<input class="button" type="submit" value="Envoyer" />
 </form>
 
+<?php if ($this->error): ?>
+<p class="error">Impossible de récupérer cette wishlist : vérifiez le steamID64 (17 chiffres) et que votre wishlist est publique.</p>
+<?php endif; ?>
+
 <?php if ($this->score): ?>
 <hr />
 <div class="flex-justifycontent--center-alignitems--center">

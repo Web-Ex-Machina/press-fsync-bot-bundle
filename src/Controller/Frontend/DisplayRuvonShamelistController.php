@@ -8,9 +8,9 @@ use Contao\CoreBundle\Controller\FrontendModule\AbstractFrontendModuleController
 use Contao\CoreBundle\DependencyInjection\Attribute\AsFrontendModule;
 use Contao\CoreBundle\Twig\FragmentTemplate;
 use Contao\ModuleModel;
-use Contao\StringUtil;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use WEM\PressFsyncBotBundle\Service\SteamService;
 
 #[AsFrontendModule(
     DisplayRuvonShamelistController::TYPE, 
@@ -24,35 +24,33 @@ class DisplayRuvonShamelistController extends AbstractFrontendModuleController
      */
     public const TYPE = 'press_shamelist_ruvon';
 
+    public function __construct(
+        private readonly SteamService $steam,
+    ) {
+    }
+
     /**
      * Generate module response
      */
     protected function getResponse(FragmentTemplate $template, ModuleModel $model, Request $request): Response
     {
-        $steamid = StringUtil::stripInsertTags(strip_tags((string) $request->request->get('steamid', '')));
+        $steamid = trim((string) $request->request->get('steamid', ''));
 
         if ('' !== $steamid) {
-            $nbGamesPlayer = $this->getNumberOfGames($steamid);
-            $nbGamesRuvon = $this->getNumberOfGames('76561198084359321');
+            $nbGamesPlayer = $this->steam->getWishlistCount($steamid);
+            $nbGamesRuvon = $this->steam->getWishlistCount(SteamService::RUVON_STEAM_ID);
 
-            $template->steamid = $steamid;
-            $template->score = $nbGamesPlayer;
-            $template->scoreRuvon = $nbGamesRuvon;
-            $template->diff = $nbGamesPlayer / $nbGamesRuvon * 100;
+            if (null === $nbGamesPlayer || !$nbGamesRuvon) {
+                // Invalid SteamID, private wishlist or Steam not answering
+                $template->error = true;
+            } else {
+                $template->steamid = $steamid;
+                $template->score = $nbGamesPlayer;
+                $template->scoreRuvon = $nbGamesRuvon;
+                $template->diff = $nbGamesPlayer / $nbGamesRuvon * 100;
+            }
         }
 
         return $template->getResponse();
-    }
-
-    protected function getNumberOfGames(string $steamid): int 
-    {
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, 'https://api.steampowered.com/IWishlistService/GetWishlistItemCount/v1/?steamid=' . $steamid);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        $r = curl_exec($ch);
-        $r = json_decode($r);
-        curl_close($ch);
-
-        return $r->response->count;
     }
 }
