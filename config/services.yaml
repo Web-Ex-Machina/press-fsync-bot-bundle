@@ -1,0 +1,21 @@
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+        public: true
+
+    WEM\PressFsyncBotBundle\:
+        resource: ../src/
+        exclude: ../src/{ContaoManager,DependencyInjection}
+
+    wem.psync.service.config_service:
+        class: WEM\PressFsyncBotBundle\Service\ConfigService
+
+    wem.psync.service.discord_service:
+        class: WEM\PressFsyncBotBundle\Service\DiscordService
+
+    wem.psync.service.task_service:
+        class: WEM\PressFsyncBotBundle\Service\TaskService
+
+    wem.psync.service.twitch_service:
+        class: WEM\PressFsyncBotBundle\Service\TwitchService

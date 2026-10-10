@@ -2,16 +2,6 @@
 
 declare(strict_types=1);
 
-/**
- * Press Fsync Bot Bundle for Contao Open Source CMS
- * Copyright (c) 2023 Web ex Machina
- *
- * @category ContaoBundle
- * @package  Web-Ex-Machina/press-fsync-bot-bundle
- * @author   Web ex Machina <contact@webexmachina.fr>
- * @link     https://github.com/Web-Ex-Machina/press-fsync-bot-bundle/
- */
-
 namespace WEM\PressFsyncBotBundle\DependencyInjection;
 
 use Symfony\Component\Config\FileLocator;
@@ -31,11 +21,7 @@ class PressFsyncBotExtension extends Extension
      */
     public function load(array $mergedConfig, ContainerBuilder $container): void
     {
-        $loader = new YamlFileLoader(
-            $container,
-            new FileLocator(__DIR__.'/../Resources/config')
-        );
-
-        $loader->load('services.yml');
+        $loader = new YamlFileLoader($container, new FileLocator(__DIR__.'/../../config'));
+        $loader->load('services.yaml');
     }
 }
