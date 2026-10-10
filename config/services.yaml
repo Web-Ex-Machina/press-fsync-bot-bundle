@@ -19,9 +19,6 @@ services:
     wem.psync.service.discord_service:
         class: WEM\PressFsyncBotBundle\Service\DiscordService
 
-    wem.psync.service.schedule_service:
-        class: WEM\PressFsyncBotBundle\Service\ScheduleService
-
     wem.psync.service.task_service:
         class: WEM\PressFsyncBotBundle\Service\TaskService
 
