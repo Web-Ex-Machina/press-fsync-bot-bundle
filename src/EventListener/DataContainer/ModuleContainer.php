@@ -35,12 +35,5 @@ class ModuleContainer
     public function getConfigs(): array
     {
         return $this->connection->fetchAllKeyValue('SELECT id, username FROM tl_pfs_user_config ORDER BY username');
-        }
-
-        while ($objItems->next()) {
-            $arrItems[$objItems->id] = $objItems->username;
-        }
-
-        return $arrItems;
     }
 }
