@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace WEM\PressFsyncBotBundle\Controller\Api;
 
 use Contao\CoreBundle\Framework\ContaoFramework;
-use Contao\Environment;
 use Contao\FilesModel;
 use Contao\FrontendTemplate;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -65,7 +64,7 @@ class ScheduleApiController
             $logo = FilesModel::findByUuid($u->syncTwitchScheduleWithDiscordMessagesThumbnail);
 
             $e = $objItems->row();
-            $e['logo'] = $logo ? Environment::get('base') . '/' . $logo->path : null;
+            $e['logo'] = $logo ? $request->getSchemeAndHttpHost() . $request->getBasePath() . '/' . $logo->path : null;
             $e['username'] = $this->encryption->decrypt_b64($u->twitchUsername);
             $e['url'] = 'https://www.twitch.tv/' . $this->encryption->decrypt_b64($u->twitchUsername);
             $e['datetime'] = date('d/m/Y à H:i', (int) $objItems->start_time);

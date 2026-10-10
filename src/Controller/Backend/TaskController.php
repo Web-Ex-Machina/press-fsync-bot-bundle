@@ -4,14 +4,16 @@ declare(strict_types=1);
 
 namespace WEM\PressFsyncBotBundle\Controller\Backend;
 
-use Contao\Controller;
-use Contao\Environment;
 use Contao\Message;
+use Symfony\Component\HttpFoundation\RequestStack;
 use WEM\PressFsyncBotBundle\Service\TaskService;
 
 class TaskController
 {
-     public function __construct(
+    use RedirectsToRefererTrait;
+
+    public function __construct(
+        private readonly RequestStack $requestStack,
         private readonly TaskService $tasker,
     ) {
     }
@@ -32,8 +34,7 @@ class TaskController
             }
         }
 
-        $referer = preg_replace('/&(amp;)?(key)=[^&]*/', '', Environment::get('requestUri'));
-        Controller::redirect($referer);
+        $this->redirectToReferer();
     }
 
     public function executeTasksDryRun(): void
@@ -58,8 +59,7 @@ class TaskController
             }
         }
 
-        $referer = preg_replace('/&(amp;)?(key)=[^&]*/', '', Environment::get('requestUri'));
-        Controller::redirect($referer);
+        $this->redirectToReferer();
     }
 
     public function cleanTasks(): void
@@ -67,7 +67,6 @@ class TaskController
         $this->tasker->cleanTasks();
         Message::addConfirmation("Tâches nettoyées");
 
-        $referer = preg_replace('/&(amp;)?(key)=[^&]*/', '', Environment::get('requestUri'));
-        Controller::redirect($referer);
+        $this->redirectToReferer();
     }
 }

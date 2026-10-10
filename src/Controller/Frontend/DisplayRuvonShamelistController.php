@@ -7,8 +7,8 @@ namespace WEM\PressFsyncBotBundle\Controller\Frontend;
 use Contao\CoreBundle\Controller\FrontendModule\AbstractFrontendModuleController;
 use Contao\CoreBundle\DependencyInjection\Attribute\AsFrontendModule;
 use Contao\CoreBundle\Twig\FragmentTemplate;
-use Contao\Input;
 use Contao\ModuleModel;
+use Contao\StringUtil;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -29,11 +29,13 @@ class DisplayRuvonShamelistController extends AbstractFrontendModuleController
      */
     protected function getResponse(FragmentTemplate $template, ModuleModel $model, Request $request): Response
     {
-        if (Input::post('steamid')) {
-            $nbGamesPlayer = $this->getNumberOfGames(Input::post('steamid'));
+        $steamid = StringUtil::stripInsertTags(strip_tags((string) $request->request->get('steamid', '')));
+
+        if ('' !== $steamid) {
+            $nbGamesPlayer = $this->getNumberOfGames($steamid);
             $nbGamesRuvon = $this->getNumberOfGames('76561198084359321');
 
-            $template->steamid = Input::post('steamid');
+            $template->steamid = $steamid;
             $template->score = $nbGamesPlayer;
             $template->scoreRuvon = $nbGamesRuvon;
             $template->diff = $nbGamesPlayer / $nbGamesRuvon * 100;

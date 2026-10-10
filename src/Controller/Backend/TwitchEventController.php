@@ -4,14 +4,16 @@ declare(strict_types=1);
 
 namespace WEM\PressFsyncBotBundle\Controller\Backend;
 
-use Contao\Controller;
-use Contao\Environment;
 use Contao\Message;
+use Symfony\Component\HttpFoundation\RequestStack;
 use WEM\PressFsyncBotBundle\Service\TwitchService;
 
 class TwitchEventController
 {
-     public function __construct(
+    use RedirectsToRefererTrait;
+
+    public function __construct(
+        private readonly RequestStack $requestStack,
         private readonly TwitchService $twitch,
     ) {
     }
@@ -25,7 +27,6 @@ class TwitchEventController
         Message::addInfo(\sprintf('%s événements mis à jour', $results['updated']));
         Message::addInfo(\sprintf('%s événements supprimés', $results['deleted']));
 
-        $referer = preg_replace('/&(amp;)?(key)=[^&]*/', '', Environment::get('requestUri'));
-        Controller::redirect($referer);
+        $this->redirectToReferer();
     }
 }

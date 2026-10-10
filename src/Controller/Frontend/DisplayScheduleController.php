@@ -10,10 +10,8 @@ use Contao\CoreBundle\DependencyInjection\Attribute\AsFrontendModule;
 use Contao\CoreBundle\Routing\ContentUrlGenerator;
 use Contao\CoreBundle\Twig\FragmentTemplate;
 use Contao\Config;
-use Contao\Environment;
 use Contao\FilesModel;
 use Contao\FrontendTemplate;
-use Contao\Input;
 use Contao\Model\Collection;
 use Contao\ModuleModel;
 use Contao\PageModel;
@@ -71,6 +69,11 @@ class DisplayScheduleController extends AbstractFrontendModuleController
      */
     protected ModuleModel $model;
 
+    /**
+     * Current request
+     */
+    protected Request $request;
+
     public function __construct(
         private readonly ContentUrlGenerator $contentUrlGenerator,
         private readonly Encryption $encryption,
@@ -82,6 +85,7 @@ class DisplayScheduleController extends AbstractFrontendModuleController
      */
     protected function getResponse(FragmentTemplate $template, ModuleModel $model, Request $request): Response
     {
+        $this->request = $request;
         $this->model = $model;
         $this->model->pids = StringUtil::deserialize($this->model->pfs_configs);
 
@@ -105,11 +109,11 @@ class DisplayScheduleController extends AbstractFrontendModuleController
             $this->buildFilters();
         }
 
-        if ('obs' === Input::get('view')) {
+        if ('obs' === $this->getQueryParameter('view')) {
             $this->generateWidget();
         }
 
-        if (!Input::get('nofilters')) {
+        if (!$this->getQueryParameter('nofilters')) {
             $template->filters = $this->filters;
         }
 
@@ -130,8 +134,8 @@ class DisplayScheduleController extends AbstractFrontendModuleController
             $this->offset = (int) $this->model->skipFirst;
 
             // Maximum number of items
-            if (Input::get('nbitems')) {
-                $this->limit = (int) Input::get('nbitems');
+            if ($this->getQueryParameter('nbitems')) {
+                $this->limit = (int) $this->getQueryParameter('nbitems');
             } else if ($this->model->numberOfItems > 0) {
                 $this->limit = $this->model->numberOfItems;
             }
@@ -165,11 +169,32 @@ class DisplayScheduleController extends AbstractFrontendModuleController
         return $template->getResponse();
     }
 
+    /**
+     * Read a query parameter, cleaned from tags and insert tags (like Input::get() did).
+     */
+    protected function getQueryParameter(string $key): string|array|null
+    {
+        return $this->clean($this->request->query->all()[$key] ?? null);
+    }
+
+    private function clean(mixed $value): string|array|null
+    {
+        if (\is_array($value)) {
+            return array_map(fn ($v) => $this->clean($v), $value);
+        }
+
+        if (!\is_string($value)) {
+            return null;
+        }
+
+        return StringUtil::stripInsertTags(strip_tags($value));
+    }
+
     protected function buildCalendar()
     {
         $objDate = new Date();
-        $start = new DateTime(Input::get('start') ?: date('Y-m-d', $objDate->monthBegin));
-        $end = new DateTime(Input::get('end') ?: date('Y-m-d', $objDate->monthEnd));
+        $start = new DateTime($this->getQueryParameter('start') ?: date('Y-m-d', $objDate->monthBegin));
+        $end = new DateTime($this->getQueryParameter('end') ?: date('Y-m-d', $objDate->monthEnd));
         $arrDays = new DatePeriod($start, new DateInterval('P1D'), (int) $start->diff($end)->format("%r%a"));
 
         foreach ($arrDays as $day) {
@@ -200,7 +225,7 @@ class DisplayScheduleController extends AbstractFrontendModuleController
                     ->get('contao.pagination.factory')
                     ->create(new PaginationConfig($param, $total, $this->model->perPage));
 			} catch (PageOutOfRangeException $e) {
-				throw new PageNotFoundException('Page not found: ' . Environment::get('uri'), previous: $e);
+				throw new PageNotFoundException('Page not found: ' . $this->request->getUri(), previous: $e);
 			}
 
 			// Set limit and offset
@@ -268,7 +293,7 @@ class DisplayScheduleController extends AbstractFrontendModuleController
                 $arrOptions[] = [
                     'value' => $c,
                     'label' => $objConfig->username,
-                    'selected' => is_array(Input::get('users')) && in_array($c, Input::get('users')) ? true : false
+                    'selected' => is_array($this->getQueryParameter('users')) && in_array($c, $this->getQueryParameter('users')) ? true : false
                 ];
             }
 
@@ -277,13 +302,13 @@ class DisplayScheduleController extends AbstractFrontendModuleController
                 'name' => "users[]",
                 'label' => $GLOBALS['TL_LANG']['PFS']['SCHEDULE']['FILTERS']['users'],
                 'placeholder' => $GGLOBALS['TL_LANG']['PFS']['SCHEDULE']['FILTERS']['usersPlaceholder'],
-                'value' => Input::get('users') ?: '',
+                'value' => $this->getQueryParameter('users') ?: '',
                 'options' => $arrOptions,
                 'multiple' => true,
             ];
 
-            if ('' !== Input::get('users') && null !== Input::get('users')) {
-                $this->config['users'] = Input::get('users');
+            if ('' !== $this->getQueryParameter('users') && null !== $this->getQueryParameter('users')) {
+                $this->config['users'] = $this->getQueryParameter('users');
             }
         }
         
@@ -300,7 +325,7 @@ class DisplayScheduleController extends AbstractFrontendModuleController
                     $arrOptions[] = [
                         'value' => $objOptions->category_name,
                         'label' => $objOptions->category_name,
-                        'selected' => Input::get('category') === $objOptions->category_name,
+                        'selected' => $this->getQueryParameter('category') === $objOptions->category_name,
                     ];
                 }
             }
@@ -310,12 +335,12 @@ class DisplayScheduleController extends AbstractFrontendModuleController
                 'name' => "category",
                 'label' => $GLOBALS['TL_LANG']['PFS']['SCHEDULE']['FILTERS']['category'],
                 'placeholder' => $GLOBALS['TL_LANG']['PFS']['SCHEDULE']['FILTERS']['categoryPlaceholder'],
-                'value' => Input::get('category') ?: '',
+                'value' => $this->getQueryParameter('category') ?: '',
                 'options' => $arrOptions
             ];
 
-            if ('' !== Input::get('category') && null !== Input::get('category')) {
-                $this->config['category_name'] = Input::get('category');
+            if ('' !== $this->getQueryParameter('category') && null !== $this->getQueryParameter('category')) {
+                $this->config['category_name'] = $this->getQueryParameter('category');
             }
         }        
     }

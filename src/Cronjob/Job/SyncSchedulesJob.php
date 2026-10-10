@@ -4,6 +4,7 @@ namespace WEM\PressFsyncBotBundle\Cronjob\Job;
 
 use Contao\Config;
 use Contao\CoreBundle\DependencyInjection\Attribute\AsCronJob;
+use Contao\CoreBundle\Framework\ContaoFramework;
 use Psr\Log\LoggerInterface;
 use WEM\PressFsyncBotBundle\Cronjob\Runner;
 use WEM\PressFsyncBotBundle\Service\DiscordService;
@@ -14,6 +15,7 @@ class SyncSchedulesJob extends Runner
 {
     public function __construct(
         LoggerInterface|null $logger,
+        private readonly ContaoFramework $framework,
         private readonly DiscordService $discord,
         private readonly TwitchService $twitch,
     ) {
@@ -24,7 +26,7 @@ class SyncSchedulesJob extends Runner
     {
         parent::__invoke();
 
-        if ('prod' !== Config::get('pfsSyncSchedulesJob')) {
+        if ('prod' !== $this->framework->getAdapter(Config::class)->get('pfsSyncSchedulesJob')) {
             return;
         }
         

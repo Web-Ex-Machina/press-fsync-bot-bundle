@@ -6,11 +6,11 @@ namespace WEM\PressFsyncBotBundle\Service;
 
 use Contao\Config;
 use Contao\CoreBundle\Framework\ContaoFramework;
-use Contao\Environment;
 use WEM\PressFsyncBotBundle\Model\DiscordEvent;
 use WEM\PressFsyncBotBundle\Model\DiscordMessage;
 use WEM\PressFsyncBotBundle\Model\Task;
 use WEM\PressFsyncBotBundle\Model\TwitchEvent;
+use Symfony\Component\Routing\RequestContext;
 use WEM\UtilsBundle\Classes\Encryption;
 
 class DiscordService
@@ -25,10 +25,11 @@ class DiscordService
         private readonly Encryption $encryption,
         private readonly TaskService $tasker,
         private readonly TwitchService $twitch,
+        private readonly RequestContext $requestContext,
     ) {
         $this->framework->initialize();
 
-        $this->token = $this->encryption->decrypt_b64(Config::get('pfsDiscordToken'));
+        $this->token = $this->encryption->decrypt_b64($this->framework->getAdapter(Config::class)->get('pfsDiscordToken'));
     }
 
     public function __set(mixed $name, mixed $value): void
@@ -239,7 +240,7 @@ class DiscordService
                 //'timestamp' => date("c"),
                 'color' => hexdec($arrConfig['color'] ?: "FFFFFF"),
                 'thumbnail' => [
-                    'url' => Environment::get('base') . $arrConfig['avatar']
+                    'url' => $this->getBaseUrl() . $arrConfig['avatar']
                 ]
             ];
 
@@ -269,6 +270,18 @@ class DiscordService
                 }
             }
         }
+    }
+
+    /**
+     * Absolute URL of the website root, with a trailing slash. Works without a current request (cron, command).
+     */
+    protected function getBaseUrl(): string
+    {
+        $scheme = $this->requestContext->getScheme();
+        $port = 'https' === $scheme ? $this->requestContext->getHttpsPort() : $this->requestContext->getHttpPort();
+        $defaultPort = 'https' === $scheme ? 443 : 80;
+
+        return $scheme.'://'.$this->requestContext->getHost().($port !== $defaultPort ? ':'.$port : '').'/';
     }
 
     protected function shouldEventBeUpdated(array $event, DiscordEvent $objDiscordEvent): bool

@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace WEM\PressFsyncBotBundle\Service;
 
-use Contao\Database;
+use Contao\CoreBundle\Monolog\ContaoContext;
+use Doctrine\DBAL\Connection;
+use Psr\Log\LoggerInterface;
 use WEM\PressFsyncBotBundle\Model\DiscordEvent;
 use WEM\PressFsyncBotBundle\Model\Task;
 use WEM\PressFsyncBotBundle\Model\TwitchEvent;
@@ -14,6 +16,12 @@ class TaskService
 {
     protected bool $debug = false;
     protected array $arrResults = [];
+
+    public function __construct(
+        private readonly Connection $connection,
+        private readonly LoggerInterface $logger,
+    ) {
+    }
 
     public function __set(mixed $name, mixed $value): void
     {
@@ -42,7 +50,7 @@ class TaskService
 
     public function cleanTasks(): void
     {
-        Database::getInstance()->query("TRUNCATE tl_pfs_task");
+        $this->connection->executeStatement('TRUNCATE tl_pfs_task');
     }
 
     public function executeTasks(): void
@@ -161,7 +169,10 @@ class TaskService
 
                         // If there is no event, log the thing and return true so it won't stuck the process
                         if (!$objEvent) {
-                            \System::log("Error with the event ID".$data['event'], __METHOD__, 'TL_ERROR');
+                            $this->logger->error(
+                                'Error with the event ID '.$data['event'],
+                                ['contao' => new ContaoContext(__METHOD__, ContaoContext::ERROR)]
+                            );
                             return true;
                         }
 

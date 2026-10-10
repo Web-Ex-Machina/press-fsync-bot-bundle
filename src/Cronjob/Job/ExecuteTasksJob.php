@@ -4,6 +4,7 @@ namespace WEM\PressFsyncBotBundle\Cronjob\Job;
 
 use Contao\Config;
 use Contao\CoreBundle\DependencyInjection\Attribute\AsCronJob;
+use Contao\CoreBundle\Framework\ContaoFramework;
 use Psr\Log\LoggerInterface;
 use WEM\PressFsyncBotBundle\Cronjob\Runner;
 use WEM\PressFsyncBotBundle\Service\TaskService;
@@ -13,6 +14,7 @@ class ExecuteTasksJob extends Runner
 {
     public function __construct(
         LoggerInterface|null $logger,
+        private readonly ContaoFramework $framework,
         private readonly TaskService $tasker,
     ) {
         parent::__construct($logger);
@@ -22,7 +24,7 @@ class ExecuteTasksJob extends Runner
     {
         parent::__invoke();
         
-        if ('prod' !== Config::get('pfsExecuteTasksJob')) {
+        if ('prod' !== $this->framework->getAdapter(Config::class)->get('pfsExecuteTasksJob')) {
             return;
         }
         

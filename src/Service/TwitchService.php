@@ -29,8 +29,8 @@ class TwitchService
     ) {
         $this->framework->initialize();
         
-        $this->clientId = $this->encryption->decrypt_b64(Config::get('pfsTwitchClientId'));
-        $this->clientSecret = $this->encryption->decrypt_b64(Config::get('pfsTwitchClientSecret'));
+        $this->clientId = $this->encryption->decrypt_b64($this->framework->getAdapter(Config::class)->get('pfsTwitchClientId'));
+        $this->clientSecret = $this->encryption->decrypt_b64($this->framework->getAdapter(Config::class)->get('pfsTwitchClientSecret'));
     }
 
     public function __set(mixed $name, mixed $value): void

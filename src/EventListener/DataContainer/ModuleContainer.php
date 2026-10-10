@@ -6,10 +6,15 @@ namespace WEM\PressFsyncBotBundle\EventListener\DataContainer;
 
 use Contao\CoreBundle\DependencyInjection\Attribute\AsCallback;
 use Contao\Controller;
-use Contao\Database;
+use Doctrine\DBAL\Connection;
 
 class ModuleContainer
 {
+    public function __construct(
+        private readonly Connection $connection,
+    ) {
+    }
+
     /**
      * Return all templates as array.
      *
@@ -29,11 +34,7 @@ class ModuleContainer
     #[AsCallback(table: 'tl_module', target: 'fields.pfs_configs.options')]
     public function getConfigs(): array
     {
-        $arrItems = [];
-        $objItems = Database::getInstance()->execute('SELECT id, username FROM tl_pfs_user_config ORDER BY username');
-
-        if (!$objItems || 0 === $objItems->count()) {
-            return $arrItems;
+        return $this->connection->fetchAllKeyValue('SELECT id, username FROM tl_pfs_user_config ORDER BY username');
         }
 
         while ($objItems->next()) {

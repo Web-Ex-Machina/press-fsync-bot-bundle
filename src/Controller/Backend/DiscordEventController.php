@@ -4,14 +4,16 @@ declare(strict_types=1);
 
 namespace WEM\PressFsyncBotBundle\Controller\Backend;
 
-use Contao\Controller;
-use Contao\Environment;
 use Contao\Message;
+use Symfony\Component\HttpFoundation\RequestStack;
 use WEM\PressFsyncBotBundle\Service\DiscordService;
 
 class DiscordEventController
 {
-     public function __construct(
+    use RedirectsToRefererTrait;
+
+    public function __construct(
+        private readonly RequestStack $requestStack,
         private readonly DiscordService $discord,
     ) {
     }
@@ -25,7 +27,6 @@ class DiscordEventController
         Message::addInfo(\sprintf('%s tâches de mise à jour créées', $results['updated']));
         Message::addInfo(\sprintf('%s tâches de suppression créées', $results['deleted']));
 
-        $referer = preg_replace('/&(amp;)?(key)=[^&]*/', '', Environment::get('requestUri'));
-        Controller::redirect($referer);
+        $this->redirectToReferer();
     }
 }
