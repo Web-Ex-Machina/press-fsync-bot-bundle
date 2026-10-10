@@ -48,6 +48,18 @@
         <source>Starts before</source>
         <target>Débute avant le</target>
       </trans-unit>
-	  </body>
+      <trans-unit id="CTE.press_fsync">
+        <source>Press Fsync Bot</source>
+        <target>Press Fsync Bot</target>
+      </trans-unit>
+      <trans-unit id="CTE.e3GamesIndex.0">
+        <source>E3 games index</source>
+        <target>Sommaire des jeux E3</target>
+      </trans-unit>
+      <trans-unit id="CTE.e3GamesIndex.1">
+        <source>Lists the E3 game blocks that follow, with a link to each one</source>
+        <target>Liste les blocs de jeux E3 qui suivent, avec un lien vers chacun</target>
+      </trans-unit>
+    </body>
   </file>
 </xliff>

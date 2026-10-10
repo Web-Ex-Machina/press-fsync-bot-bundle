@@ -2,7 +2,14 @@
 <xliff version="1.1">
 	<file datatype="php" original="system/modules/core/languages/en/tl_module.php" source-language="en" target-language="fr">
 		<body>
-
+			<trans-unit id="tl_module.pressf5_be_members.0">
+				<source>Authors</source>
+				<target>Auteurs</target>
+			</trans-unit>
+			<trans-unit id="tl_module.pressf5_be_members.1">
+				<source>Only display the news written by the selected back end users.</source>
+				<target>N'afficher que les actualités rédigées par les utilisateurs du back office sélectionnés.</target>
+			</trans-unit>
 		</body>
 	</file>
 </xliff>

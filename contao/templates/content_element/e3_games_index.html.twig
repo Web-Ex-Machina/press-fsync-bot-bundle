@@ -1,0 +1,12 @@
+{% extends "@Contao/content_element/_base.html.twig" %}
+
+{% block content %}
+    <h3 class="ce_headline">Sommaire</h3>
+    <div class="content">
+        <ul>
+            {% for item in items %}
+                <li><a href="{{ url }}#{{ item.anchor }}" class="goto" data-goto="{{ item.anchor }}" title="Aller au jeu {{ item.label }}">{{ item.label }}</a></li>
+            {% endfor %}
+        </ul>
+    </div>
+{% endblock %}
