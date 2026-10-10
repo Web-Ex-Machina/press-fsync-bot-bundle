@@ -5,21 +5,21 @@ declare(strict_types=1);
 namespace WEM\PressFsyncBotBundle\Controller\Backend;
 
 use Contao\Message;
-use Symfony\Component\HttpFoundation\RequestStack;
+use WEM\PressFsyncBotBundle\Service\BackendActionGuard;
 use WEM\PressFsyncBotBundle\Service\TaskService;
 
 class TaskController
 {
-    use RedirectsToRefererTrait;
-
     public function __construct(
-        private readonly RequestStack $requestStack,
+        private readonly BackendActionGuard $guard,
         private readonly TaskService $tasker,
     ) {
     }
 
     public function executeTasks(): void
     {
+        $this->guard->assertValidRequestToken();
+
         $this->tasker->setDebug(false);
         $this->tasker->executeTasks();
         $results = $this->tasker->getResults();
@@ -34,11 +34,13 @@ class TaskController
             }
         }
 
-        $this->redirectToReferer();
+        $this->guard->redirectToReferer();
     }
 
     public function executeTasksDryRun(): void
     {
+        $this->guard->assertValidRequestToken();
+
         $this->tasker->setDebug(true);
         $this->tasker->executeTasks();
         $results = $this->tasker->getResults();
@@ -59,14 +61,16 @@ class TaskController
             }
         }
 
-        $this->redirectToReferer();
+        $this->guard->redirectToReferer();
     }
 
     public function cleanTasks(): void
     {
+        $this->guard->assertValidRequestToken();
+
         $this->tasker->cleanTasks();
         Message::addConfirmation("Tâches nettoyées");
 
-        $this->redirectToReferer();
+        $this->guard->redirectToReferer();
     }
 }

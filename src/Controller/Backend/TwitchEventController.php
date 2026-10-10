@@ -5,21 +5,21 @@ declare(strict_types=1);
 namespace WEM\PressFsyncBotBundle\Controller\Backend;
 
 use Contao\Message;
-use Symfony\Component\HttpFoundation\RequestStack;
+use WEM\PressFsyncBotBundle\Service\BackendActionGuard;
 use WEM\PressFsyncBotBundle\Service\TwitchService;
 
 class TwitchEventController
 {
-    use RedirectsToRefererTrait;
-
     public function __construct(
-        private readonly RequestStack $requestStack,
+        private readonly BackendActionGuard $guard,
         private readonly TwitchService $twitch,
     ) {
     }
 
     public function syncEvents(): void
     {
+        $this->guard->assertValidRequestToken();
+
         $this->twitch->syncEvents();
         $results = $this->twitch->getResults();
 
@@ -27,6 +27,6 @@ class TwitchEventController
         Message::addInfo(\sprintf('%s événements mis à jour', $results['updated']));
         Message::addInfo(\sprintf('%s événements supprimés', $results['deleted']));
 
-        $this->redirectToReferer();
+        $this->guard->redirectToReferer();
     }
 }

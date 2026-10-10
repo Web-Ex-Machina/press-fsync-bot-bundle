@@ -5,21 +5,21 @@ declare(strict_types=1);
 namespace WEM\PressFsyncBotBundle\Controller\Backend;
 
 use Contao\Message;
-use Symfony\Component\HttpFoundation\RequestStack;
+use WEM\PressFsyncBotBundle\Service\BackendActionGuard;
 use WEM\PressFsyncBotBundle\Service\DiscordService;
 
 class DiscordEventController
 {
-    use RedirectsToRefererTrait;
-
     public function __construct(
-        private readonly RequestStack $requestStack,
+        private readonly BackendActionGuard $guard,
         private readonly DiscordService $discord,
     ) {
     }
 
     public function syncEvents(): void
     {
+        $this->guard->assertValidRequestToken();
+
         $this->discord->syncEvents();
         $results = $this->discord->getResults();
 
@@ -27,6 +27,6 @@ class DiscordEventController
         Message::addInfo(\sprintf('%s tâches de mise à jour créées', $results['updated']));
         Message::addInfo(\sprintf('%s tâches de suppression créées', $results['deleted']));
 
-        $this->redirectToReferer();
+        $this->guard->redirectToReferer();
     }
 }
