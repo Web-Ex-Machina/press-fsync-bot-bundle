@@ -2,6 +2,9 @@
 
 declare(strict_types=1);
 
+use Contao\CoreBundle\DataContainer\PaletteManipulator;
+use Contao\DataContainer;
+
 $GLOBALS['TL_DCA']['tl_module']['palettes']['__selector__'][] = 'pfs_schedule_mode';
 $GLOBALS['TL_DCA']['tl_module']['palettes']['press_fsync_display_schedule'] = '
     {title_legend},name,headline,type;
@@ -55,4 +58,21 @@ $GLOBALS['TL_DCA']['tl_module']['fields']['pfs_schedule_nbGroupsBy'] = [
     'inputType' => 'text',
     'eval' => ['rgxp' => 'digit', 'tl_class' => 'w50'],
     'sql' => "int(10) unsigned NOT NULL default '0'",
+];
+
+/**
+ * Filter the news list by author (see NewsListAuthorsListener)
+ */
+PaletteManipulator::create()
+    ->addField('pressf5_be_members', 'config_legend', PaletteManipulator::POSITION_PREPEND)
+    ->applyToPalette('newslist', 'tl_module')
+;
+
+$GLOBALS['TL_DCA']['tl_module']['fields']['pressf5_be_members'] = [
+    'exclude' => true,
+    'flag' => DataContainer::SORT_ASC,
+    'inputType' => 'checkbox',
+    'foreignKey' => 'tl_user.name',
+    'eval' => ['doNotCopy' => true, 'chosen' => true, 'multiple' => true, 'mandatory' => true, 'includeBlankOption' => true, 'tl_class' => 'clr'],
+    'sql' => 'blob NULL',
 ];

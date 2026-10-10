@@ -24,4 +24,5 @@ Extension "Press Fsync Bot" for Contao Open Source CMS
 - FIXED: `$GGLOBALS` typo in the users filter of the schedule (the placeholder was never displayed), and the filter used an undefined `$this->pids` instead of the pids of the module
 - CHANGED: a task whose Twitch event does not exist anymore is logged through the Contao logger and skipped, so it does not block the task process
 - UPDATED: the Composer file (`support.website`, dev dependencies, plugins), `.gitignore`, `LICENSE`
+- ADDED: the code of the legacy `system/modules/pressf5` of pressf5.fr, now part of the bundle: the `e3GamesIndex` content element (`E3GamesIndexController`, Twig template `content_element/e3_games_index`), the news list filter by author (`pressf5_be_members` field on the module and `NewsListAuthorsListener` on the `newsListCountItems` / `newsListFetchItems` hooks, `News` model). The element type and the column are unchanged, so the existing content is kept
 - ADDED: ECS (Contao coding standard) and Rector configuration

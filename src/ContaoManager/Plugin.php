@@ -30,6 +30,7 @@ class Plugin implements BundlePluginInterface, RoutingPluginInterface
             BundleConfig::create(PressFsyncBotBundle::class)
                 ->setLoadAfter([
                     ContaoCoreBundle::class,
+                    \Contao\NewsBundle\ContaoNewsBundle::class,
                 ])
                 ->setReplace(['press-fsync-bot']),
         ];
