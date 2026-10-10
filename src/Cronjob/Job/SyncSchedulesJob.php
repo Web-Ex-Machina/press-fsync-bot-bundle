@@ -4,8 +4,6 @@ namespace WEM\PressFsyncBotBundle\Cronjob\Job;
 
 use Contao\Config;
 use Contao\CoreBundle\DependencyInjection\Attribute\AsCronJob;
-use Contao\CoreBundle\Exception\CronExecutionSkippedException;
-use Contao\CoreBundle\Framework\ContaoFramework;
 use Psr\Log\LoggerInterface;
 use WEM\PressFsyncBotBundle\Cronjob\Runner;
 use WEM\PressFsyncBotBundle\Service\DiscordService;
@@ -15,11 +13,11 @@ use WEM\PressFsyncBotBundle\Service\TwitchService;
 class SyncSchedulesJob extends Runner
 {
     public function __construct(
-        protected LoggerInterface|null $logger,
+        LoggerInterface|null $logger,
         private readonly DiscordService $discord,
         private readonly TwitchService $twitch,
     ) {
-        parent::__construct();
+        parent::__construct($logger);
     }
 
     public function __invoke(): void

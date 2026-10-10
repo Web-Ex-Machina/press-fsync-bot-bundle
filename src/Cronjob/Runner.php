@@ -4,19 +4,14 @@ declare(strict_types=1);
 
 namespace WEM\PressFsyncBotBundle\Cronjob;
 
-use Contao\CoreBundle\Framework\FrameworkAwareInterface;
-use Contao\CoreBundle\Framework\FrameworkAwareTrait;
 use Contao\CoreBundle\Monolog\ContaoContext;
+use Psr\Log\LoggerInterface;
 
-class Runner implements FrameworkAwareInterface
+class Runner
 {
-    use FrameworkAwareTrait;
-
-    /**
-     * SynchronizationRequestListener constructor.
-     */
-    public function __construct()
-    {
+    public function __construct(
+        protected readonly LoggerInterface|null $logger = null,
+    ) {
     }
 
     /**
@@ -28,8 +23,8 @@ class Runner implements FrameworkAwareInterface
 
     public function log(string $message): void
     {
-        $this->logger->info(
-            $message, 
+        $this->logger?->info(
+            $message,
             ['contao' => new ContaoContext(__METHOD__, ContaoContext::CRON)]
         );
     }
