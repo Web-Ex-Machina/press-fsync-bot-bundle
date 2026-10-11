@@ -103,6 +103,10 @@ class DiscordService
             $intUser = (int) $objTwitchEvent->user;
 
             if (!isset($arrConfigs[$intUser])) {
+                if (!$objTwitchEvent->getRelated('user')) {
+                    continue;
+                }
+
                 $arrConfigs[$intUser] = $this->config->parse($objTwitchEvent->getRelated('user'));
             }
 
@@ -119,7 +123,7 @@ class DiscordService
             $blnShouldUpdate = $objDiscordEvent && $this->shouldEventBeUpdated($objTwitchEvent, $arrConfig, $objDiscordEvent);
 
             // Create task if it does not exists in Database
-            foreach ($arrConfig['events_servers'] as $s) {
+            foreach (array_filter((array) $arrConfig['events_servers']) as $s) {
                 if (!$objDiscordEvent) {
                     $this->tasker->create(
                         "discord",
@@ -303,7 +307,7 @@ class DiscordService
                 //'timestamp' => date("c"),
                 'color' => hexdec($arrConfig['color'] ?: "FFFFFF"),
                 'thumbnail' => [
-                    'url' => $this->getBaseUrl() . $arrConfig['avatar']
+                    'url' => $this->getBaseUrl() . ($arrConfig['avatar'] ?? '')
                 ]
             ];
 
@@ -350,7 +354,10 @@ class DiscordService
     protected function shouldEventBeUpdated(TwitchEvent $objTwitchEvent, array $arrConfig, DiscordEvent $objDiscordEvent): bool
     {
         // If the title has changed, go
-        if ($objTwitchEvent->title !== $objDiscordEvent->discord_event_name) {
+        // The name sent to Discord is built by the task executor: unescaped title cut to 100 chars, or the category name
+        $strName = mb_substr(stripslashes((string) $objTwitchEvent->title), 0, 100) ?: (string) $objTwitchEvent->category_name;
+
+        if ($strName !== $objDiscordEvent->discord_event_name) {
             return true;
         }
 

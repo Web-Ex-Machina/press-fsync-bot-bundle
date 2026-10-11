@@ -202,6 +202,10 @@ class TaskService
     protected function executeTask(Task $objTask): bool
     {
         $data = $objTask->data ? StringUtil::deserialize($objTask->data) : [];
+        if (!is_array($data)) {
+            $data = [];
+        }
+
         if (array_key_exists('title', $data)) {
             $data['title'] = stripcslashes($data['title']);
         }
@@ -239,14 +243,14 @@ class TaskService
 
                         $intConfig = $data['config']['id'];
 
-                        $data['title'] = stripslashes(substr($objEvent->title, 0, 100));
+                        $data['title'] = mb_substr(stripslashes((string) $objEvent->title), 0, 100);
                         $data['url'] = $data['config']['url'];
                         $data['user'] = $data['config']['broadcaster_id'];
                         $data['start_time'] = date('c', (int) $objEvent->start_time);
                         $data['end_time'] = date('c', (int) $objEvent->end_time);
-                        $data['category']['name'] = $objEvent->category_name;
+                        $data['category']['name'] = (string) $objEvent->category_name;
 
-                        if ($data['config']['default_picture']) {
+                        if (!empty($data['config']['default_picture'])) {
                             $data['image'] = $data['config']['default_picture'];
                         }
 
@@ -264,11 +268,11 @@ class TaskService
                             break;
                         }
 
-                        if (10070 === $objResult['code']) {
+                        if (10070 === ($objResult['code'] ?? null)) {
                             break;
                         }
 
-                        if (is_array($objResult['scheduled_end_time']) && "Cannot schedule event in the past." === $objResult['scheduled_end_time'][0]) {
+                        if (is_array($objResult['scheduled_end_time'] ?? null) && "Cannot schedule event in the past." === ($objResult['scheduled_end_time'][0] ?? null)) {
                             $objEvent->delete();
                             $objTask->delete();
                             $blnSuccess = false;
@@ -277,7 +281,7 @@ class TaskService
 
                         // If we do not have an ID, it is because the request failed
                         // so we must break the switch
-                        if (!$objResult['id']) {
+                        if (empty($objResult['id'])) {
                             $blnSuccess = false;
                             break;
                         }
@@ -326,9 +330,9 @@ class TaskService
                     break;
                     case 'add_message':
                     case 'update_message':
-                        foreach ($data['embeds'] as &$e) {
-                            $e['title'] = html_entity_decode($e['title']);
-                            $e['description'] = html_entity_decode($e['description']);
+                        foreach (array_keys($data['embeds'] ?? []) as $k) {
+                            $data['embeds'][$k]['title'] = html_entity_decode((string) ($data['embeds'][$k]['title'] ?? ''));
+                            $data['embeds'][$k]['description'] = html_entity_decode((string) ($data['embeds'][$k]['description'] ?? ''));
                         }
 
                         $objResult = $this->discord->request(
@@ -345,7 +349,7 @@ class TaskService
 
                         // If we do not have an ID, it is because the request failed
                         // so we must break the switch
-                        if (!$objResult['id']) {
+                        if (empty($objResult['id'])) {
                             $blnSuccess = false;
                             break;
                         }

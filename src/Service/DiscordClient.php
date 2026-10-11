@@ -13,6 +13,7 @@ class DiscordClient
     protected const CONNECT_TIMEOUT = 5;
     protected const TIMEOUT = 15;
     protected const MAX_RATE_LIMIT_WAIT = 10.0;
+    protected const MAX_RETRIES = 3;
 
     protected ?string $token = null;
     protected float $rateLimitWait = 0.0;
@@ -37,8 +38,9 @@ class DiscordClient
 
     /**
      * Returns null if the request failed (network error, timeout, invalid response).
+     * Returns an empty array for successful responses without a body (204 on delete for example).
      */
-    public function request(string $endpoint, array $data = [], string $method = 'GET'): ?array
+    public function request(string $endpoint, array $data = [], string $method = 'GET', int $intRetries = 0): ?array
     {
         # Set endpoint
         $url = "https://discord.com/api/" . $endpoint;
@@ -76,36 +78,29 @@ class DiscordClient
         }
 
         $request = curl_exec($ch);
+        $intHeaderSize = (int) curl_getinfo($ch, CURLINFO_HEADER_SIZE);
+        $intStatus = (int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
         curl_close($ch);
 
         // Network error or timeout
-        if (false === $request) {
+        if (!is_string($request)) {
             return null;
         }
 
+        // Split headers and body, based on the size given by cURL (the body can be empty or on multiple lines)
         $headers = [];
-        $request = rtrim($request);
-        $response = explode("\n", $request);
 
-        $headers['status'] = $response[0];
-        array_shift($response);
-
-        $body = end($response);
-        array_pop($response);
-
-        foreach ($response as $part) {
+        foreach (explode("\n", substr($request, 0, $intHeaderSize)) as $part) {
             $middle = explode(":", $part, 2);
 
-            if (!$middle[0]) {
+            if (!isset($middle[1]) || !trim($middle[0])) {
                 continue;
-            }
-
-            if (!isset($middle[1])) {
-                $middle[1] = "";
             }
 
             $headers[strtolower(trim($middle[0]))] = trim($middle[1]);
         }
+
+        $body = trim(substr($request, $intHeaderSize));
 
         // Remember if we must wait before the next request (bucket exhausted)
         if (isset($headers['x-ratelimit-remaining'], $headers['x-ratelimit-reset-after'])
@@ -114,17 +109,26 @@ class DiscordClient
             $this->rateLimitWait = min((float) $headers['x-ratelimit-reset-after'], self::MAX_RATE_LIMIT_WAIT);
         }
 
-        $response = json_decode($body, true);
-
-        // If we hit the API limit, sleep for a while and relaunch the request
-        if (is_array($response) && array_key_exists('retry_after', $response)) {
-            sleep((int) ceil($response['retry_after']));
-            $this->rateLimitWait = 0.0;
-
-            return $this->request($endpoint, $data, $method);
+        // Successful response without a body
+        if ('' === $body) {
+            return $intStatus >= 200 && $intStatus < 300 ? [] : null;
         }
 
-        return is_array($response) ? $response : null;
+        $response = json_decode($body, true);
+
+        if (!is_array($response)) {
+            return null;
+        }
+
+        // If we hit the API limit, sleep for a while and relaunch the request
+        if (array_key_exists('retry_after', $response) && $intRetries < self::MAX_RETRIES) {
+            sleep((int) ceil((float) $response['retry_after']));
+            $this->rateLimitWait = 0.0;
+
+            return $this->request($endpoint, $data, $method, $intRetries + 1);
+        }
+
+        return $response;
     }
 
     protected function getToken(): string
