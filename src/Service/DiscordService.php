@@ -63,22 +63,60 @@ class DiscordService
         $objEvents = TwitchEvent::findItems(['start_time_before' => strtotime("+1 week"), 'notcanceled' => true]);
 
         // Nothing to do, skip
-        if (!$objEvents || 0 === $objEvents) {
+        if (!$objEvents || 0 === $objEvents->count()) {
             return;
         }
+
+        // Load the stored Discord events once, then work with in-memory indexes
+        // instead of running one or two queries per event
+        $arrStoredEvents = [];
+        $arrStoredByTwitch = [];
+        $arrStoredByDiscord = [];
+
+        $objStoredEvents = DiscordEvent::findAll(['order' => 'tstamp ASC']);
+
+        if ($objStoredEvents) {
+            foreach ($objStoredEvents->getModels() as $objStoredEvent) {
+                $arrStoredEvents[] = $objStoredEvent;
+
+                if ($objStoredEvent->twitch_event && !isset($arrStoredByTwitch[$objStoredEvent->twitch_event])) {
+                    $arrStoredByTwitch[$objStoredEvent->twitch_event] = $objStoredEvent;
+                }
+
+                if ($objStoredEvent->discord_event && !isset($arrStoredByDiscord[$objStoredEvent->discord_event])) {
+                    $arrStoredByDiscord[$objStoredEvent->discord_event] = $objStoredEvent;
+                }
+            }
+        }
+
+        // Parsed configs, by user, so we parse each one only once
+        $arrConfigs = [];
 
         // Store the events we add
         $arrServers = [];
 
         // Check if we must add/update items inside Discord
         while ($objEvents->next()) {
+            $objTwitchEvent = $objEvents->current();
+
             // Retrieve event config
-            $arrConfig = $this->config->parse($objEvents->getRelated('user'));
+            $intUser = (int) $objTwitchEvent->user;
+
+            if (!isset($arrConfigs[$intUser])) {
+                $arrConfigs[$intUser] = $this->config->parse($objTwitchEvent->getRelated('user'));
+            }
+
+            $arrConfig = $arrConfigs[$intUser];
 
             // Retrieve the Discord event
-            $objDiscordEvent = DiscordEvent::findOneBy(['twitch_event="'.$objEvents->id.'"'], null);
-            $data['event'] = $objEvents->id;
-            $data['config'] = $arrConfig;
+            $objDiscordEvent = $arrStoredByTwitch[$objTwitchEvent->id] ?? null;
+            $data = [
+                'event' => $objTwitchEvent->id,
+                'config' => $arrConfig,
+            ];
+
+            // Same answer for every server, compute it once
+            $blnShouldUpdate = $objDiscordEvent && $this->shouldEventBeUpdated($objTwitchEvent, $arrConfig, $objDiscordEvent);
 
             // Create task if it does not exists in Database
             foreach ($arrConfig['events_servers'] as $s) {
@@ -94,7 +132,7 @@ class DiscordService
                     $this->arrResults['created']++;
                 }
                 // Create task if it does exists in Database but it should be updated
-                elseif ($this->shouldEventBeUpdated($data, $objDiscordEvent)) {
+                elseif ($blnShouldUpdate) {
                     $this->tasker->create(
                         "discord",
                         "update_event",
@@ -106,7 +144,7 @@ class DiscordService
                     $this->arrResults['updated']++;
                 }
 
-                $arrServers[$s][] = $objEvents->id;
+                $arrServers[$s][] = $objTwitchEvent->id;
             }
         }
 
@@ -115,6 +153,26 @@ class DiscordService
         // 2/ are in Discord servers but are marked as canceled in the database
         // 3/ are in the database but are not in the listed events added by the loop above (we add a task if they have a Discord Event ID)
         if (!empty($arrServers)) {
+            // Twitch events linked to the stored Discord events, loaded once for all servers
+            $arrTwitchEvents = [];
+            $arrTwitchIds = [];
+
+            foreach ($arrStoredEvents as $objStoredEvent) {
+                if ($objStoredEvent->twitch_event) {
+                    $arrTwitchIds[(int) $objStoredEvent->twitch_event] = (int) $objStoredEvent->twitch_event;
+                }
+            }
+
+            if (!empty($arrTwitchIds)) {
+                $objTwitchEvents = TwitchEvent::findMultipleByIds(array_values($arrTwitchIds));
+
+                if ($objTwitchEvents) {
+                    foreach ($objTwitchEvents->getModels() as $objTwitchEvent) {
+                        $arrTwitchEvents[(int) $objTwitchEvent->id] = $objTwitchEvent;
+                    }
+                }
+            }
+
             foreach ($arrServers as $s => $events) {
                 // Retrieve Discord events for this server
                 // Litle cache system so we do not repeat unecessary requests
@@ -133,8 +191,14 @@ class DiscordService
                 // 1 & 2
                 if ($objDiscordEvents) {
                     foreach ($objDiscordEvents as $e) {
+                        if (!is_array($e) || empty($e['id'])) {
+                            continue;
+                        }
+
+                        $objStoredEvent = $arrStoredByDiscord[$e['id']] ?? null;
+
                         // 1
-                        if (0 === DiscordEvent::countItems(['discord_event' => $e['id']])) {
+                        if (!$objStoredEvent) {
                             $this->tasker->create(
                                 "discord",
                                 "delete_event",
@@ -149,8 +213,7 @@ class DiscordService
                         }
 
                         // 2
-                        $objEvent = DiscordEvent::findItems(['discord_event' => $e['id']], 1);
-                        $objTwitchEvent = $objEvent->getRelated('twitch_event');
+                        $objTwitchEvent = $arrTwitchEvents[(int) $objStoredEvent->twitch_event] ?? null;
 
                         if (!$objTwitchEvent || null !== $objTwitchEvent->canceled_until) {
                             $this->tasker->create(
@@ -160,31 +223,34 @@ class DiscordService
                                 [],
                                 'DELETE'
                             );
-                            
+
                             $this->arrResults['deleted']++;
                         }
                     }
                 }
 
                 // 3
-                $strSql = 'twitch_event NOT IN(' . implode(',', $events) . ')';
-                $objDatabaseEvents = DiscordEvent::findBy([$strSql], null);
-                if ($objDatabaseEvents && 0 < $objDatabaseEvents->count()) {
-                    while ($objDatabaseEvents->next()) {
-                        if (!$objDatabaseEvents->discord_event) {
-                            continue;
-                        }
+                $arrListedEvents = array_flip($events);
 
-                        $this->tasker->create(
-                            "discord",
-                            "delete_event",
-                            sprintf('guilds/%s/scheduled-events/%s', $s, $objDatabaseEvents->discord_event),
-                            [],
-                            'DELETE'
-                        );
-
-                        $this->arrResults['deleted']++;
+                foreach ($arrStoredEvents as $objStoredEvent) {
+                    // Same behavior as "twitch_event NOT IN(...)": rows without a Twitch event are ignored
+                    if (null === $objStoredEvent->twitch_event || '' === $objStoredEvent->twitch_event) {
+                        continue;
                     }
+
+                    if (isset($arrListedEvents[$objStoredEvent->twitch_event]) || !$objStoredEvent->discord_event) {
+                        continue;
+                    }
+
+                    $this->tasker->create(
+                        "discord",
+                        "delete_event",
+                        sprintf('guilds/%s/scheduled-events/%s', $s, $objStoredEvent->discord_event),
+                        [],
+                        'DELETE'
+                    );
+
+                    $this->arrResults['deleted']++;
                 }
             }
         }
@@ -281,26 +347,22 @@ class DiscordService
         return $scheme.'://'.$this->requestContext->getHost().($port !== $defaultPort ? ':'.$port : '').'/';
     }
 
-    protected function shouldEventBeUpdated(array $event, DiscordEvent $objDiscordEvent): bool
+    protected function shouldEventBeUpdated(TwitchEvent $objTwitchEvent, array $arrConfig, DiscordEvent $objDiscordEvent): bool
     {
-        $objTwitchEvent = TwitchEvent::findByPk($event['event']);
-
         // If the title has changed, go
-        $title = $objTwitchEvent->title ?: $objTwitchEvent->category_name;
         if ($objTwitchEvent->title !== $objDiscordEvent->discord_event_name) {
             return true;
         }
 
-        if (date('c', $objTwitchEvent->start_time) !== $objDiscordEvent->discord_event_scheduled_start_time) {
+        if (date('c', (int) $objTwitchEvent->start_time) !== $objDiscordEvent->discord_event_scheduled_start_time) {
             return true;
         }
 
-        if (date('c', $objTwitchEvent->end_time) !== $objDiscordEvent->discord_event_scheduled_end_time) {
+        if (date('c', (int) $objTwitchEvent->end_time) !== $objDiscordEvent->discord_event_scheduled_end_time) {
             return true;
         }
 
-        // retrieve config and format url
-        $arrConfig = $this->config->parse($objTwitchEvent->getRelated('user'));
+        // Check the formatted url
         if ($arrConfig['url'] !== $objDiscordEvent->discord_event_entity_metadata_location) {
             return true;
         }

@@ -22,6 +22,8 @@ class TaskService
 
     protected bool $debug = false;
     protected array $arrResults = [];
+    /** @var array<string, true>|null Keys of the tasks already in database, null until first needed */
+    protected ?array $pendingKeys = null;
 
     public function __construct(
         private readonly Connection $connection,
@@ -60,10 +62,12 @@ class TaskService
     public function cleanTasks(): void
     {
         $this->connection->executeStatement('TRUNCATE tl_pfs_task');
+        $this->pendingKeys = null;
     }
 
     public function executeTasks(): void
     {
+        $this->pendingKeys = null;
         $this->arrResults = [
             'success' => [],
             'errors' => [],
@@ -139,18 +143,30 @@ class TaskService
 
     public function shouldBeCreated(string $strType, string $strTask, string $strEndpoint, array $arrData, string $strMethod): bool
     {
-        return 0 === Task::countBy(
-            [
-                \sprintf(
-                    "type='%s' AND task='%s' AND endpoint='%s' AND data=? AND method='%s'", 
-                    $strType, 
-                    $strTask, 
-                    $strEndpoint, 
-                    $strMethod
-                ),
-            ], 
-            serialize($arrData),
-        );
+        // Load the pending tasks once, so we do not run a query per task to create
+        if (null === $this->pendingKeys) {
+            $this->pendingKeys = [];
+            $objPending = Task::findAll();
+
+            if ($objPending) {
+                foreach ($objPending->getModels() as $objPendingTask) {
+                    $this->pendingKeys[$this->getTaskKey(
+                        (string) $objPendingTask->type,
+                        (string) $objPendingTask->task,
+                        (string) $objPendingTask->endpoint,
+                        (string) $objPendingTask->data,
+                        (string) $objPendingTask->method
+                    )] = true;
+                }
+            }
+        }
+
+        return !isset($this->pendingKeys[$this->getTaskKey($strType, $strTask, $strEndpoint, serialize($arrData), $strMethod)]);
+    }
+
+    protected function getTaskKey(string $strType, string $strTask, string $strEndpoint, string $strData, string $strMethod): string
+    {
+        return md5(implode("\0", [$strType, $strTask, $strEndpoint, $strData, $strMethod]));
     }
 
     public function create(string $strType, string $strTask, string $strEndpoint, array $arrData, string $strMethod): void
@@ -178,6 +194,8 @@ class TaskService
             $objTask->data = serialize($arrData);
             $objTask->method = $strMethod;
             $objTask->save();
+
+            $this->pendingKeys[$this->getTaskKey($strType, $strTask, $strEndpoint, $objTask->data, $strMethod)] = true;
         }
     }
 
