@@ -47,7 +47,7 @@ $GLOBALS['TL_DCA']['tl_pfs_task'] = [
         'operations' => ['edit', 'delete', 'show'],
     ],
     'palettes' => [
-        'default' => '{global_legend},created_at,type,task,endpoint,data,method',
+        'default' => '{global_legend},created_at,type,task,endpoint,data,method,attempts',
     ],
     // Fields
     'fields' => [
@@ -85,6 +85,11 @@ $GLOBALS['TL_DCA']['tl_pfs_task'] = [
             'filter' => true,
             'inputType' => 'text',
             'sql' => 'text NULL',
+        ],
+        'attempts' => [
+            'inputType' => 'text',
+            'eval' => ['rgxp' => 'natural', 'tl_class' => 'w50'],
+            'sql' => "int(10) unsigned NOT NULL default '0'",
         ],
     ],
 ];

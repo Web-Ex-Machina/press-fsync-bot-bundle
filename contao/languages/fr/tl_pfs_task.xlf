@@ -30,6 +30,14 @@
         <source>Enter the task name</source>
         <target>Saisir l'intitulé de la tâche</target>
       </trans-unit>
+      <trans-unit id="tl_pfs_task.attempts.0">
+        <source>Attempts</source>
+        <target>Tentatives</target>
+      </trans-unit>
+      <trans-unit id="tl_pfs_task.attempts.1">
+        <source>Number of failed executions. The task is not retried after 5 failures.</source>
+        <target>Nombre d'exécutions échouées. La tâche n'est plus relancée après 5 échecs.</target>
+      </trans-unit>
       <trans-unit id="tl_pfs_task.endpoint.0">
         <source>Endpoint</source>
         <target>Endpoint</target>

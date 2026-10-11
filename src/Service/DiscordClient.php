@@ -10,7 +10,12 @@ use WEM\UtilsBundle\Classes\Encryption;
 
 class DiscordClient
 {
+    protected const CONNECT_TIMEOUT = 5;
+    protected const TIMEOUT = 15;
+    protected const MAX_RATE_LIMIT_WAIT = 10.0;
+
     protected ?string $token = null;
+    protected float $rateLimitWait = 0.0;
 
     public function __construct(
         private readonly ContaoFramework $framework,
@@ -18,6 +23,21 @@ class DiscordClient
     ) {
     }
 
+    /**
+     * Returns the number of seconds to wait before the next request to respect Discord's rate limit
+     * (0 if the last response said we still have requests left), then resets it.
+     */
+    public function consumeRateLimitWait(): float
+    {
+        $wait = $this->rateLimitWait;
+        $this->rateLimitWait = 0.0;
+
+        return $wait;
+    }
+
+    /**
+     * Returns null if the request failed (network error, timeout, invalid response).
+     */
     public function request(string $endpoint, array $data = [], string $method = 'GET'): ?array
     {
         # Set endpoint
@@ -36,6 +56,8 @@ class DiscordClient
                 "Accept: application/json"
             ),
             CURLOPT_RETURNTRANSFER => 1,
+            CURLOPT_CONNECTTIMEOUT => self::CONNECT_TIMEOUT,
+            CURLOPT_TIMEOUT        => self::TIMEOUT,
         ));
 
         switch ($method) {
@@ -55,6 +77,11 @@ class DiscordClient
 
         $request = curl_exec($ch);
         curl_close($ch);
+
+        // Network error or timeout
+        if (false === $request) {
+            return null;
+        }
 
         $headers = [];
         $request = rtrim($request);
@@ -77,19 +104,27 @@ class DiscordClient
                 $middle[1] = "";
             }
 
-            $headers[trim($middle[0])] = trim($middle[1]);
+            $headers[strtolower(trim($middle[0]))] = trim($middle[1]);
+        }
+
+        // Remember if we must wait before the next request (bucket exhausted)
+        if (isset($headers['x-ratelimit-remaining'], $headers['x-ratelimit-reset-after'])
+            && (int) $headers['x-ratelimit-remaining'] <= 0
+        ) {
+            $this->rateLimitWait = min((float) $headers['x-ratelimit-reset-after'], self::MAX_RATE_LIMIT_WAIT);
         }
 
         $response = json_decode($body, true);
 
         // If we hit the API limit, sleep for a while and relaunch the request
         if (is_array($response) && array_key_exists('retry_after', $response)) {
-            sleep((int) round($response['retry_after']));
+            sleep((int) ceil($response['retry_after']));
+            $this->rateLimitWait = 0.0;
 
-            $response = $this->request($endpoint, $data, $method);
+            return $this->request($endpoint, $data, $method);
         }
 
-        return $response;
+        return is_array($response) ? $response : null;
     }
 
     protected function getToken(): string

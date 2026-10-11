@@ -15,6 +15,11 @@ use WEM\UtilsBundle\Classes\StringUtil;
 
 class TaskService
 {
+    protected const BATCH_SIZE = 100;
+    protected const MAX_ATTEMPTS = 5;
+    // Seconds, kept under the 60s hardlock to leave room for a last request (15s timeout)
+    protected const TIME_BUDGET = 40;
+
     protected bool $debug = false;
     protected array $arrResults = [];
 
@@ -69,9 +74,14 @@ class TaskService
 
         // Hardlock the timeout
         set_time_limit(60);
+        $fltStart = microtime(true);
 
-        // Retrieve sync tasks to do and execute them
-        $objTasks = Task::findAll(['limit' => 30, 'order' => 'created_at ASC']);
+        // Retrieve sync tasks to do (skip the ones that failed too many times) and execute them
+        $objTasks = Task::findBy(
+            ['attempts < ?'],
+            [self::MAX_ATTEMPTS],
+            ['limit' => self::BATCH_SIZE, 'order' => 'created_at ASC']
+        );
 
         if (!$objTasks) {
             return;
@@ -80,6 +90,11 @@ class TaskService
         $this->arrResults['pending'] = $objTasks->count();
 
         while ($objTasks->next()) {
+            // Stop before the hardlock, the remaining tasks will be handled by the next run
+            if (microtime(true) - $fltStart >= self::TIME_BUDGET) {
+                break;
+            }
+
             // If the task did well, delete from table
             if ($this->executeTask($objTasks->current())) {
                 $this->arrResults['success'][] = $objTasks->current();
@@ -88,10 +103,34 @@ class TaskService
                     $objTasks->delete();
                 }
 
-                // pause
-                sleep(1);
+                // Only pause if Discord told us the rate limit bucket is exhausted
+                $fltWait = $this->discord->consumeRateLimitWait();
+
+                if ($fltWait > 0) {
+                    usleep((int) ($fltWait * 1000000));
+                }
             } else {
                 $this->arrResults['errors'][] = $objTasks->current();
+
+                // Count the failure, so a broken task will not block the queue forever (skip tasks deleted during execution)
+                if (!$this->isDebug() && $objTasks->id) {
+                    $objTasks->attempts = (int) $objTasks->attempts + 1;
+                    $objTasks->save();
+
+                    if ($objTasks->attempts >= self::MAX_ATTEMPTS) {
+                        $this->logger->error(
+                            \sprintf(
+                                'Task %s (%s - %s - %s) failed %s times, it will not be retried',
+                                $objTasks->id,
+                                $objTasks->type,
+                                $objTasks->task,
+                                $objTasks->endpoint,
+                                self::MAX_ATTEMPTS
+                            ),
+                            ['contao' => new ContaoContext(__METHOD__, ContaoContext::ERROR)]
+                        );
+                    }
+                }
             }
 
             $this->arrResults['pending']--;
@@ -201,6 +240,12 @@ class TaskService
                             $method
                         );
 
+                        // Network error or timeout, retry on the next run
+                        if (null === $objResult) {
+                            $blnSuccess = false;
+                            break;
+                        }
+
                         if (10070 === $objResult['code']) {
                             break;
                         }
@@ -274,6 +319,12 @@ class TaskService
                             $method
                         );
 
+                        // Network error or timeout, retry on the next run
+                        if (null === $objResult) {
+                            $blnSuccess = false;
+                            break;
+                        }
+
                         // If we do not have an ID, it is because the request failed
                         // so we must break the switch
                         if (!$objResult['id']) {
@@ -304,6 +355,10 @@ class TaskService
             break;
             case 'twitch':
                 $objResult = $this->twitchClient->request($objTask->endpoint, $data, $method);
+
+                if (null === $objResult) {
+                    $blnSuccess = false;
+                }
             break;
             default:
                 throw new \Exception("Unkown task type");
