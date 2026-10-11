@@ -18,7 +18,7 @@ class DiscordClient
     ) {
     }
 
-    public function request(string $endpoint, array $data = [], string $method = 'GET'): array
+    public function request(string $endpoint, array $data = [], string $method = 'GET'): ?array
     {
         # Set endpoint
         $url = "https://discord.com/api/" . $endpoint;
