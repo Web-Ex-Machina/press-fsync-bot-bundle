@@ -174,7 +174,7 @@ class TwitchService
      *
      * @return array
      */
-    protected function parseEvent(array $event, int $width = 800, int $height = 320): array
+    public function parseEvent(array $event, int $width = 800, int $height = 320): array
     {
         $title = $event['title'] ?: $event['category']['name'];
 
@@ -188,32 +188,6 @@ class TwitchService
                 'location' => $event['url']
             ]
         ];
-
-        // Retrieve game picture
-        try {
-            if ($event['category']['name']) {
-                $objPicture = $this->getGamePicture($event['category']['name']);
-
-                if (null !== $objPicture) {
-                    $event['image'] = $objPicture->path;
-                }
-            }
-
-            if (!$event['image']) {
-                throw new Exception('No image found for this category and no fallback image to use');
-            }
-
-            // Format the picture
-            $picture = Image::get($objPicture->path ?: $event['image'], $width, $height, 'crop');
-            $objThumbnail = new File($picture);
-
-            // If everything is ok, add the picture
-            if ($objThumbnail) {
-                $data['image'] = 'data:image/jpg;base64,'.base64_encode($objThumbnail->getContent());
-            }
-        } catch (Exception $e) {
-            unset($data['image']);
-        }
 
         // Return data
         return $data;

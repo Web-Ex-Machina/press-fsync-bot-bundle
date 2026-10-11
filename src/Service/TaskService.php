@@ -20,6 +20,7 @@ class TaskService
     public function __construct(
         private readonly Connection $connection,
         private readonly LoggerInterface $logger,
+        private readonly TwitchService $twitch,
     ) {
     }
 
@@ -181,8 +182,8 @@ class TaskService
                         $data['title'] = stripslashes(substr($objEvent->title, 0, 100));
                         $data['url'] = $data['config']['url'];
                         $data['user'] = $data['config']['broadcaster_id'];
-                        $data['start_time'] = date('c', $objEvent->start_time);
-                        $data['end_time'] = date('c', $objEvent->end_time);
+                        $data['start_time'] = date('c', (int) $objEvent->start_time);
+                        $data['end_time'] = date('c', (int) $objEvent->end_time);
                         $data['category']['name'] = $objEvent->category_name;
 
                         if ($data['config']['default_picture']) {
