@@ -13,6 +13,8 @@ use WEM\PressFsyncBotBundle\Model\UserConfig;
 
 class TwitchService
 {
+    protected const PARALLEL_REQUESTS = 10;
+
     protected array $arrCache = ['categories' => []];
     protected array $arrResults = [];
 
@@ -59,101 +61,145 @@ class TwitchService
     {
         $arrChannels = $this->getChannels();
         $arrEvents = [];
+        // Users for which we could not get a reliable answer from Twitch, their events must not be removed
+        $arrFailedUsers = [];
         $this->arrResults = [
             'created' => 0,
             'updated' => 0,
             'deleted' => 0,
         ];
 
-        foreach ($arrChannels as $t) {
-            // First, get the next events from the Twitch schedule
-            $r = $this->client->request(
-                'helix/schedule',
-                [
-                    'broadcaster_id' => $t['broadcaster_id'],
-                    'start_time' => date('Y-m-d\TH:i:sP'),
-                    'utc_offset' => 60
-                ]
-            );
+        // Load the stored events once, instead of one query per Twitch event
+        $arrStoredEvents = [];
+        $arrStoredByTwitch = [];
+        $objStoredEvents = TwitchEvent::findAll();
 
-            if (null === $r || !array_key_exists('data', $r) || null === $r['data'] || null === $r['data']['segments']) {
-                continue;
+        if ($objStoredEvents) {
+            foreach ($objStoredEvents->getModels() as $objStoredEvent) {
+                $arrStoredEvents[] = $objStoredEvent;
+
+                if ($objStoredEvent->twitch_event && !isset($arrStoredByTwitch[$objStoredEvent->twitch_event])) {
+                    $arrStoredByTwitch[$objStoredEvent->twitch_event] = $objStoredEvent;
+                }
+            }
+        }
+
+        $strStartTime = date('Y-m-d\TH:i:sP');
+
+        // Get the next events from the Twitch schedules, requests are made in parallel
+        foreach (array_chunk($arrChannels, self::PARALLEL_REQUESTS, true) as $arrChunk) {
+            $arrRequests = [];
+
+            foreach ($arrChunk as $i => $t) {
+                $arrRequests[$i] = [
+                    'endpoint' => 'helix/schedule',
+                    'data' => [
+                        'broadcaster_id' => $t['broadcaster_id'],
+                        'start_time' => $strStartTime,
+                        'utc_offset' => 60
+                    ],
+                ];
             }
 
-            // Loop on the events
-            foreach ($r['data']['segments'] as $event) {
-                // Skip if event is in one month or after
-                if ($this->getTimestampFromDate($event['start_time']) >= strtotime("+1 month")) {
+            $arrResponses = $this->client->requestMultiple($arrRequests);
+
+            foreach ($arrChunk as $i => $t) {
+                $r = $arrResponses[$i] ?? null;
+
+                // Network error, or error from the API (a 404 only means the channel has no schedule)
+                if (null === $r || (isset($r['error']) && 404 !== (int) ($r['status'] ?? 0))) {
+                    $arrFailedUsers[$t['id']] = true;
+
                     continue;
                 }
 
-                if (null !== $event['canceled_until']) {
-                    // continue;
+                if (!array_key_exists('data', $r) || null === $r['data'] || null === $r['data']['segments']) {
+                    continue;
                 }
 
-                // Sync the event in the database
-                $objEvent = $this->syncEvent($event, $t);
-                $arrEvents[] = $objEvent->id;
+                // Loop on the events
+                foreach ($r['data']['segments'] as $event) {
+                    // Skip if event is in one month or after
+                    if ($this->getTimestampFromDate($event['start_time']) >= strtotime("+1 month")) {
+                        continue;
+                    }
+
+                    // Sync the event in the database
+                    $objEvent = $this->syncEvent($event, $t, $arrStoredByTwitch[$event['id']] ?? null);
+                    $arrStoredByTwitch[$event['id']] = $objEvent;
+                    $arrEvents[$objEvent->id] = true;
+                }
             }
         }
 
         // Finally, remove events that have been removed from Twitch
-        if (!empty($arrEvents)) {
-            $strSql = 'id NOT IN(' . implode(',', $arrEvents) . ')';
-            $objDatabaseEvents = TwitchEvent::findBy([$strSql], null);
-        } else {
-            $objDatabaseEvents = TwitchEvent::findAll();
-        }
-
-        if ($objDatabaseEvents && 0 < $objDatabaseEvents->count()) {
-            while ($objDatabaseEvents->next()) {
-                $objDatabaseEvents->delete();
-                $this->arrResults['deleted']++;
+        foreach ($arrStoredEvents as $objStoredEvent) {
+            if (isset($arrEvents[$objStoredEvent->id]) || isset($arrFailedUsers[$objStoredEvent->user])) {
+                continue;
             }
+
+            $objStoredEvent->delete();
+            $this->arrResults['deleted']++;
         }
     }
 
     /**
-     * Sync a Twitch event in the Database
-     * @param  array $event Twitch event from API
-     * @param  array $t     User config from database
+     * Sync a Twitch event in the Database, only writes when something changed
+     * @param  array             $event       Twitch event from API
+     * @param  array             $t           User config from database
+     * @param  TwitchEvent|null  $objExisting Event already in database, if any
      * @return TwitchEvent
      */
-    protected function syncEvent(array $event, array $t): TwitchEvent
+    protected function syncEvent(array $event, array $t, ?TwitchEvent $objExisting = null): TwitchEvent
     {
-        try {
-            $objEvent = TwitchEvent::findItems(['twitch_event' => $event['id']], 1);
+        $arrValues = [
+            'twitch_event' => $event['id'],
+            'user' => $t['id'],
+            'start_time' => $this->getTimestampFromDate($event['start_time']),
+            'end_time' => $this->getTimestampFromDate($event['end_time']),
+            'title' => addslashes($event['title']),
+            'is_recurring' => $event['is_recurring'] ? 1 : '',
+            'canceled_until' => $this->getTimestampFromDate($event['canceled_until']),
+        ];
 
-            if (!$objEvent) {
-                $objEvent = new TwitchEvent();
+        if ($event['category']) {
+            $arrValues['category_id'] = $event['category']['id'] ?: 0;
+            $arrValues['category_name'] = $event['category']['name'] ?: '';
+        }
 
-                $this->arrResults['created']++;
-            } else {
-                $objEvent = $objEvent->current();
+        if (!$objExisting) {
+            $objEvent = new TwitchEvent();
 
-                $this->arrResults['updated']++;
+            foreach ($arrValues as $k => $v) {
+                $objEvent->{$k} = $v;
             }
 
             $objEvent->tstamp = time();
-            $objEvent->twitch_event = $event['id'];
-            $objEvent->user = $t['id'];
-            $objEvent->start_time = $this->getTimestampFromDate($event['start_time']);
-            $objEvent->end_time = $this->getTimestampFromDate($event['end_time']);
-            $objEvent->title = addslashes($event['title']);
-            $objEvent->is_recurring = $event['is_recurring'] ? 1 : '';
-            $objEvent->canceled_until = $this->getTimestampFromDate($event['canceled_until']);
-
-            if ($event['category']) {
-                $objEvent->category_id = $event['category']['id'] ?: 0;
-                $objEvent->category_name = $event['category']['name'] ?: '';
-            }
-
             $objEvent->save();
 
+            $this->arrResults['created']++;
+
             return $objEvent;
-        } catch (\Exception $e) {
-            throw $e;
         }
+
+        // Values from the database are strings, compare them as such
+        $blnChanged = false;
+
+        foreach ($arrValues as $k => $v) {
+            if ((string) $objExisting->{$k} !== (string) $v) {
+                $objExisting->{$k} = $v;
+                $blnChanged = true;
+            }
+        }
+
+        if ($blnChanged) {
+            $objExisting->tstamp = time();
+            $objExisting->save();
+
+            $this->arrResults['updated']++;
+        }
+
+        return $objExisting;
     }
 
     /**
