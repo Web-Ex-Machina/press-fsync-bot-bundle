@@ -12,6 +12,7 @@ Extension "Press Fsync Bot" for Contao Open Source CMS
 - CHANGED: the resources moved from `src/Resources/contao/` to `contao/` (DCA, languages, templates, config), the classmap autoload is removed
 - CHANGED: the front end modules are fragment controllers (`DisplayScheduleController`, `DisplayRuvonShamelistController`), the Contao 4 modules `DisplaySchedule` and `ShamelistRuvon` are removed. The templates are still `.html5` files
 - CHANGED: the API moved to dedicated controllers (`ScheduleApiController`: `/api/psync/schedule`, `RuvonApiController`: `/api/psync/ruvon`) using the `Symfony\Component\Routing\Attribute\Route` attribute
+- ADDED: `AuthorController` (`author` front end module, template `frontend_module/author`) and the author fields of `tl_user` (`authorPicture`, `authorDescription`, `authorPage`, `authorLinks`, edited with `menatwork/contao-multicolumnwizard-bundle`), migrated from the project template `mod_author.html5`
 - ADDED: services: `TwitchService`, `DiscordService`, `TaskService`, `ConfigService`, `SteamService`, `BackendActionGuard`
 - ADDED: cron jobs: `SyncSchedulesJob` (every 10 minutes: Twitch and Discord events) and `ExecuteTasksJob` (every 10 minutes, offset by 5: pending tasks). They only run when the new settings `pfsSyncSchedulesJob` / `pfsExecuteTasksJob` are set to `prod` (default), so they can be disabled on a development instance
 - ADDED: back end actions to run manually the Twitch sync, the Discord events sync, and the tasks (execute, dry run, clean)

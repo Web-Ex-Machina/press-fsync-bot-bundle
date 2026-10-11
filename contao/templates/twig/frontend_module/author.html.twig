@@ -1,0 +1,39 @@
+{% extends "@Contao/frontend_module/_base.html.twig" %}
+
+{% block content %}
+    <div class="bg-primary">
+        <div class="d-grid cols-4">
+            {% if author.figure %}
+                <div class="author-image">
+                    <div class="image_container" itemscope itemtype="https://schema.org/ImageObject">
+                        {{ include('@Contao/component/_figure.html.twig', {figure: author.figure}) }}
+                    </div>
+                </div>
+            {% endif %}
+
+            <div class="author-container {{ author.figure ? 'has-image cols-span-3' : 'no-image cols-span-4' }}" itemprop="author" itemscope itemtype="https://schema.org/Person">
+                <p class="author-name h3">
+                    {% if author.page %}
+                        <a href="{{ author.page }}" title="{{ author.name }}" class="author-more" rel="author"><span itemprop="name">{{ author.name }}</span></a>
+                    {% else %}
+                        <span itemprop="name">{{ author.name }}</span>
+                    {% endif %}
+                </p>
+                {% if author.description %}
+                    <p class="author-description">
+                        {{ author.description|raw }}
+                    </p>
+                {% endif %}
+                {% if author.links %}
+                    <ul class="author-links">
+                        {% for link in author.links %}
+                            <li>
+                                <a class="author-social-link author-{{ link.class }}" href="{{ link.link }}" target="_blank" rel="noopener" itemprop="sameAs" title="{{ link.name }}">{{ link.name }}</a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %}

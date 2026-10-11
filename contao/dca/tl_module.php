@@ -76,3 +76,23 @@ $GLOBALS['TL_DCA']['tl_module']['fields']['pressf5_be_members'] = [
     'eval' => ['doNotCopy' => true, 'chosen' => true, 'multiple' => true, 'mandatory' => true, 'includeBlankOption' => true, 'tl_class' => 'clr'],
     'sql' => 'blob NULL',
 ];
+
+/**
+ * Author block (see AuthorController)
+ */
+$GLOBALS['TL_DCA']['tl_module']['palettes']['author'] = '
+    {title_legend},name,headline,type;
+    {config_legend},authorArchiveType,imgSize;
+    {template_legend:hide},customTpl;
+    {expert_legend:hide},guests,cssID
+';
+
+$GLOBALS['TL_DCA']['tl_module']['fields']['authorArchiveType'] = [
+    'default' => 'author_news',
+    'exclude' => true,
+    'inputType' => 'select',
+    'options' => ['author_news'],
+    'reference' => &$GLOBALS['TL_LANG']['tl_module']['authorArchiveTypes'],
+    'eval' => ['tl_class' => 'w50'],
+    'sql' => "varchar(255) NOT NULL default ''",
+];

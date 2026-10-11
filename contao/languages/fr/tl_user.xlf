@@ -1,0 +1,51 @@
+<?xml version="1.0" ?>
+<xliff version="1.1">
+	<file datatype="php" original="contao/languages/en/tl_user.php" source-language="en" target-language="fr">
+		<body>
+			<trans-unit id="tl_user.author_legend">
+				<source>Author</source>
+				<target>Auteur</target>
+			</trans-unit>
+			<trans-unit id="tl_user.authorPicture.0">
+				<source>Picture</source>
+				<target>Photo</target>
+			</trans-unit>
+			<trans-unit id="tl_user.authorPicture.1">
+				<source>Picture displayed in the author block.</source>
+				<target>Photo affichée dans le bloc auteur.</target>
+			</trans-unit>
+			<trans-unit id="tl_user.authorDescription.0">
+				<source>Description</source>
+				<target>Description</target>
+			</trans-unit>
+			<trans-unit id="tl_user.authorDescription.1">
+				<source>Short presentation displayed in the author block.</source>
+				<target>Courte présentation affichée dans le bloc auteur.</target>
+			</trans-unit>
+			<trans-unit id="tl_user.authorPage.0">
+				<source>Author page</source>
+				<target>Page de l'auteur</target>
+			</trans-unit>
+			<trans-unit id="tl_user.authorPage.1">
+				<source>Page linked from the name and the picture of the author.</source>
+				<target>Page vers laquelle pointent le nom et la photo de l'auteur.</target>
+			</trans-unit>
+			<trans-unit id="tl_user.authorLinks.0">
+				<source>Links</source>
+				<target>Liens</target>
+			</trans-unit>
+			<trans-unit id="tl_user.authorLinks.1">
+				<source>Social networks and websites of the author.</source>
+				<target>Réseaux sociaux et sites de l'auteur.</target>
+			</trans-unit>
+			<trans-unit id="tl_user.authorLinks_name">
+				<source>Name</source>
+				<target>Nom</target>
+			</trans-unit>
+			<trans-unit id="tl_user.authorLinks_link">
+				<source>URL</source>
+				<target>URL</target>
+			</trans-unit>
+		</body>
+	</file>
+</xliff>
