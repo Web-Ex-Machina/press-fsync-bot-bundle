@@ -11,6 +11,9 @@ use WEM\UtilsBundle\Classes\Encryption;
 
 class TwitchClient
 {
+    // IGDB uses the same credentials as Twitch, endpoints are given as a full URL
+    public const IGDB_URL = 'https://api.igdb.com/v4/';
+
     protected const CONNECT_TIMEOUT = 5;
     protected const TIMEOUT = 15;
     protected const TOKEN_CACHE_KEY = 'pfs_twitch_app_token';
@@ -30,8 +33,11 @@ class TwitchClient
 
     /**
      * Returns null if the request failed (network error, timeout, invalid response).
+     *
+     * @param string       $endpoint Helix endpoint, or a full URL (IGDB)
+     * @param array|string $data     Query/form data, or a raw body (IGDB queries)
      */
-    public function request(string $endpoint, array $data = [], string $method = 'GET'): ?array
+    public function request(string $endpoint, array|string $data = [], string $method = 'GET'): ?array
     {
         for ($attempt = 0; $attempt < 2; ++$attempt) {
             $token = $this->getToken();
@@ -139,9 +145,9 @@ class TwitchClient
         return array_replace(array_fill_keys(array_keys($arrRequests), null), $arrResults);
     }
 
-    protected function buildHandle(string $endpoint, array $data, string $method, array $token): \CurlHandle
+    protected function buildHandle(string $endpoint, array|string $data, string $method, array $token): \CurlHandle
     {
-        $url = 'https://api.twitch.tv/' . $endpoint;
+        $url = str_starts_with($endpoint, 'https://') ? $endpoint : 'https://api.twitch.tv/' . $endpoint;
 
         $ch = curl_init();
 
@@ -150,12 +156,12 @@ class TwitchClient
                 curl_setopt($ch, CURLOPT_POST, true);
 
                 if (!empty($data)) {
-                    curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
+                    curl_setopt($ch, CURLOPT_POSTFIELDS, is_string($data) ? $data : http_build_query($data));
                 }
             break;
             case 'GET':
                 if (!empty($data)) {
-                    $url .= '?' . http_build_query($data);
+                    $url .= '?' . (is_string($data) ? $data : http_build_query($data));
                 }
             break;
             default:

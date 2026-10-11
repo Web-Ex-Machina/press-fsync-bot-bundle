@@ -250,9 +250,11 @@ class TaskService
                         $data['end_time'] = date('c', (int) $objEvent->end_time);
                         $data['category']['name'] = (string) $objEvent->category_name;
 
-                        if (!empty($data['config']['default_picture'])) {
-                            $data['image'] = $data['config']['default_picture'];
-                        }
+                        // Category key art, or the fallback picture of the config
+                        $data['image'] = $this->twitch->getEventPicture(
+                            (int) $objEvent->category_id,
+                            $data['config']['default_picture'] ?? null
+                        );
 
                         $data = $this->twitch->parseEvent($data);
 
