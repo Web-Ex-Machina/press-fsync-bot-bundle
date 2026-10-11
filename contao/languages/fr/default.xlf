@@ -48,6 +48,18 @@
         <source>Starts before</source>
         <target>Débute avant le</target>
       </trans-unit>
+      <trans-unit id="FMD.press_fsync">
+        <source>Press Fsync Bot</source>
+        <target>Press Fsync Bot</target>
+      </trans-unit>
+      <trans-unit id="FMD.author.0">
+        <source>Author block</source>
+        <target>Bloc auteur</target>
+      </trans-unit>
+      <trans-unit id="FMD.author.1">
+        <source>Displays the author of the news being read: picture, description and links</source>
+        <target>Affiche l'auteur de l'actualité lue : photo, description et liens</target>
+      </trans-unit>
       <trans-unit id="CTE.press_fsync">
         <source>Press Fsync Bot</source>
         <target>Press Fsync Bot</target>

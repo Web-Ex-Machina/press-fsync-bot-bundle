@@ -10,6 +10,18 @@
 				<source>Only display the news written by the selected back end users.</source>
 				<target>N'afficher que les actualités rédigées par les utilisateurs du back office sélectionnés.</target>
 			</trans-unit>
+			<trans-unit id="tl_module.authorArchiveType.0">
+				<source>Author</source>
+				<target>Auteur</target>
+			</trans-unit>
+			<trans-unit id="tl_module.authorArchiveType.1">
+				<source>Which author to display.</source>
+				<target>Quel auteur afficher.</target>
+			</trans-unit>
+			<trans-unit id="tl_module.authorArchiveTypes.author_news">
+				<source>Author of the news being read</source>
+				<target>Auteur de l'actualité lue</target>
+			</trans-unit>
 		</body>
 	</file>
 </xliff>
