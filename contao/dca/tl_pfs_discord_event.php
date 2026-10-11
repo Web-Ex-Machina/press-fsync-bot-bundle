@@ -37,6 +37,11 @@ $GLOBALS['TL_DCA']['tl_pfs_discord_event'] = [
                 'href' => 'key=syncEvents',
                 'icon' => 'alert',
             ],
+            'forceSyncEvents' => [
+                'href' => 'key=forceSyncEvents',
+                'icon' => 'alert',
+                'attributes' => 'onclick="if(!confirm(\'Mettre à jour tous les événements Discord à venir, même inchangés ?\'))return false;"',
+            ],
             'syncMessages' => [
                 'href' => 'key=syncMessages',
                 'icon' => 'alert',

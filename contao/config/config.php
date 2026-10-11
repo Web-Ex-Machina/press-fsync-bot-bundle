@@ -30,6 +30,7 @@ ArrayUtil::arrayInsert(
             'press_fsync_discord_events' => [
                 'tables' => ['tl_pfs_discord_event'],
                 'syncEvents' => [DiscordEventController::class, 'syncEvents'],
+                'forceSyncEvents' => [DiscordEventController::class, 'forceSyncEvents'],
                 // 'syncMessages' => [DiscordMessageController::class, 'syncMessages'],
             ],
             'press_fsync_tasks' => [

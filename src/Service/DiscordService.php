@@ -48,7 +48,9 @@ class DiscordService
     // Add task to create Discord Event if it exists in Database but not in Discord
     // Add task to update Discord Event if it exists in Database and in Discord and it should be updated
     // Add task to delete Discord Event if it exists in Discord but not in Database
-    public function syncEvents(): void
+    // When $blnForce is true, every upcoming event already in Discord gets an update task,
+    // even if nothing changed (e.g. to push a new picture)
+    public function syncEvents(bool $blnForce = false): void
     {
         $this->arrResults = [
             'created' => 0,
@@ -121,7 +123,7 @@ class DiscordService
             ];
 
             // Same answer for every server, compute it once
-            $blnShouldUpdate = $objDiscordEvent && $this->shouldEventBeUpdated($objTwitchEvent, $arrConfig, $objDiscordEvent);
+            $blnShouldUpdate = $objDiscordEvent && ($blnForce || $this->shouldEventBeUpdated($objTwitchEvent, $arrConfig, $objDiscordEvent));
 
             // Create task if it does not exists in Database
             foreach (array_filter((array) $arrConfig['events_servers']) as $s) {

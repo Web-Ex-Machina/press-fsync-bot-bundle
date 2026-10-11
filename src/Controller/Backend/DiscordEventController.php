@@ -18,9 +18,19 @@ class DiscordEventController
 
     public function syncEvents(): void
     {
+        $this->sync(false);
+    }
+
+    public function forceSyncEvents(): void
+    {
+        $this->sync(true);
+    }
+
+    protected function sync(bool $blnForce): void
+    {
         $this->guard->assertValidRequestToken();
 
-        $this->discord->syncEvents();
+        $this->discord->syncEvents($blnForce);
         $results = $this->discord->getResults();
 
         Message::addConfirmation(\sprintf('%s tâches de création créées', $results['created']));
