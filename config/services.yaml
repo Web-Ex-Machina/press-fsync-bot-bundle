@@ -11,11 +11,17 @@ services:
     wem.psync.service.config_service:
         class: WEM\PressFsyncBotBundle\Service\ConfigService
 
+    wem.psync.service.discord_client:
+        class: WEM\PressFsyncBotBundle\Service\DiscordClient
+
     wem.psync.service.discord_service:
         class: WEM\PressFsyncBotBundle\Service\DiscordService
 
     wem.psync.service.task_service:
         class: WEM\PressFsyncBotBundle\Service\TaskService
+
+    wem.psync.service.twitch_client:
+        class: WEM\PressFsyncBotBundle\Service\TwitchClient
 
     wem.psync.service.twitch_service:
         class: WEM\PressFsyncBotBundle\Service\TwitchService

@@ -8,6 +8,7 @@ use Contao\CoreBundle\Monolog\ContaoContext;
 use Doctrine\DBAL\Connection;
 use Psr\Log\LoggerInterface;
 use WEM\PressFsyncBotBundle\Model\DiscordEvent;
+use WEM\PressFsyncBotBundle\Model\DiscordMessage;
 use WEM\PressFsyncBotBundle\Model\Task;
 use WEM\PressFsyncBotBundle\Model\TwitchEvent;
 use WEM\UtilsBundle\Classes\StringUtil;
@@ -21,6 +22,8 @@ class TaskService
         private readonly Connection $connection,
         private readonly LoggerInterface $logger,
         private readonly TwitchService $twitch,
+        private readonly TwitchClient $twitchClient,
+        private readonly DiscordClient $discord,
     ) {
     }
 
@@ -120,7 +123,7 @@ class TaskService
                 $strType,
                 $strTask,
                 $strEndpoint,
-                json_encode($data),
+                json_encode($arrData),
                 $strMethod
             );
 
@@ -300,10 +303,10 @@ class TaskService
 
             break;
             case 'twitch':
-                $objResult = $this->twitch->request($objTask->endpoint, $data, $method);
+                $objResult = $this->twitchClient->request($objTask->endpoint, $data, $method);
             break;
             default:
-                throw new Exception("Unkown task type");
+                throw new \Exception("Unkown task type");
         }
 
         return $blnSuccess;
