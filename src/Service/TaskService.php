@@ -116,6 +116,9 @@ class TaskService
             } else {
                 $this->arrResults['errors'][] = $objTasks->current();
 
+                $strError = $this->describeFailure($objTasks->current());
+                $this->arrResults['errors_details'][] = $strError;
+
                 // Count the failure, so a broken task will not block the queue forever (skip tasks deleted during execution)
                 if (!$this->isDebug() && $objTasks->id) {
                     $objTasks->attempts = (int) $objTasks->attempts + 1;
@@ -124,12 +127,13 @@ class TaskService
                     if ($objTasks->attempts >= self::MAX_ATTEMPTS) {
                         $this->logger->error(
                             \sprintf(
-                                'Task %s (%s - %s - %s) failed %s times, it will not be retried',
+                                'Task %s (%s - %s - %s) failed %s times, it will not be retried. Last error: %s',
                                 $objTasks->id,
                                 $objTasks->type,
                                 $objTasks->task,
                                 $objTasks->endpoint,
-                                self::MAX_ATTEMPTS
+                                self::MAX_ATTEMPTS,
+                                $strError
                             ),
                             ['contao' => new ContaoContext(__METHOD__, ContaoContext::ERROR)]
                         );
@@ -139,6 +143,23 @@ class TaskService
 
             $this->arrResults['pending']--;
         }
+    }
+
+    /**
+     * One line description of a failed task, with the error returned by Discord when there is one.
+     */
+    protected function describeFailure(Task $objTask): string
+    {
+        $strError = 'discord' === $objTask->type ? $this->discord->getLastError() : null;
+
+        return \sprintf(
+            '[%s - %s] %s %s : %s',
+            $objTask->type,
+            $objTask->task,
+            $objTask->method ?: 'GET',
+            $objTask->endpoint,
+            $strError ?? 'échec (aucune erreur renvoyée)'
+        );
     }
 
     public function shouldBeCreated(string $strType, string $strTask, string $strEndpoint, array $arrData, string $strMethod): bool

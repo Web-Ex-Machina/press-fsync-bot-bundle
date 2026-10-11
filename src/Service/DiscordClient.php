@@ -17,6 +17,7 @@ class DiscordClient
 
     protected ?string $token = null;
     protected float $rateLimitWait = 0.0;
+    protected ?string $lastError = null;
 
     public function __construct(
         private readonly ContaoFramework $framework,
@@ -37,11 +38,22 @@ class DiscordClient
     }
 
     /**
+     * Human readable description of the error returned by the last request (HTTP status, Discord code and message,
+     * detail of the invalid fields, or cURL error), null if the last request succeeded.
+     */
+    public function getLastError(): ?string
+    {
+        return $this->lastError;
+    }
+
+    /**
      * Returns null if the request failed (network error, timeout, invalid response).
      * Returns an empty array for successful responses without a body (204 on delete for example).
      */
     public function request(string $endpoint, array $data = [], string $method = 'GET', int $intRetries = 0): ?array
     {
+        $this->lastError = null;
+
         # Set endpoint
         $url = "https://discord.com/api/" . $endpoint;
 
@@ -80,10 +92,13 @@ class DiscordClient
         $request = curl_exec($ch);
         $intHeaderSize = (int) curl_getinfo($ch, CURLINFO_HEADER_SIZE);
         $intStatus = (int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
+        $strCurlError = curl_error($ch);
         curl_close($ch);
 
         // Network error or timeout
         if (!is_string($request)) {
+            $this->lastError = 'Erreur réseau : '.('' !== $strCurlError ? $strCurlError : 'pas de réponse de Discord');
+
             return null;
         }
 
@@ -111,12 +126,20 @@ class DiscordClient
 
         // Successful response without a body
         if ('' === $body) {
-            return $intStatus >= 200 && $intStatus < 300 ? [] : null;
+            if ($intStatus >= 200 && $intStatus < 300) {
+                return [];
+            }
+
+            $this->lastError = \sprintf('HTTP %s (réponse vide)', $intStatus);
+
+            return null;
         }
 
         $response = json_decode($body, true);
 
         if (!is_array($response)) {
+            $this->lastError = \sprintf('HTTP %s (réponse invalide : %s)', $intStatus, mb_substr($body, 0, 200));
+
             return null;
         }
 
@@ -128,7 +151,62 @@ class DiscordClient
             return $this->request($endpoint, $data, $method, $intRetries + 1);
         }
 
+        if ($intStatus >= 400 || array_key_exists('retry_after', $response)) {
+            $this->lastError = $this->formatError($intStatus, $response);
+        }
+
         return $response;
+    }
+
+    protected function formatError(int $intStatus, array $response): string
+    {
+        $parts = [\sprintf('HTTP %s', $intStatus)];
+
+        if (isset($response['code'])) {
+            $parts[] = (string) $response['code'];
+        }
+
+        if (!empty($response['message']) && is_string($response['message'])) {
+            $parts[] = $response['message'];
+        }
+
+        $strError = implode(' - ', $parts);
+
+        if (array_key_exists('retry_after', $response)) {
+            $strError .= \sprintf(' (retry after %ss)', $response['retry_after']);
+        }
+
+        // Detail of the invalid fields
+        $details = [];
+        $this->flattenErrors((array) ($response['errors'] ?? []), '', $details);
+
+        if (!empty($details)) {
+            $strError .= ' : '.implode(' ; ', $details);
+        }
+
+        return $strError;
+    }
+
+    /**
+     * Discord nests the field errors as {"field": {"sub": {"_errors": [{"code": "...", "message": "..."}]}}}
+     */
+    protected function flattenErrors(array $errors, string $path, array &$details): void
+    {
+        foreach ($errors as $key => $value) {
+            if (!is_array($value)) {
+                continue;
+            }
+
+            if ('_errors' === $key) {
+                foreach ($value as $error) {
+                    $details[] = ('' !== $path ? $path.' : ' : '').($error['message'] ?? json_encode($error));
+                }
+
+                continue;
+            }
+
+            $this->flattenErrors($value, '' !== $path ? $path.'.'.$key : (string) $key, $details);
+        }
     }
 
     protected function getToken(): string

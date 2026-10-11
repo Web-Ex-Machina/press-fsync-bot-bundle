@@ -39,6 +39,10 @@ class SyncSchedulesJob extends Runner
         $results = $this->discord->getResults();
         $this->log(\sprintf('Discord Events - %s/%s/%s created/updated/deleted', $results['created'], $results['updated'], $results['deleted']));
 
+        foreach ($results['errors'] ?? [] as $error) {
+            $this->log('Discord Events error: '.$error);
+        }
+
         // $this->discord->syncMessages();
         // $results = $this->discord->getResults();
         // $this->log(\sprintf('Discord Messages - %s/%s/%s created/updated/deleted', $results['created'], $results['updated'], $results['deleted']));

@@ -27,6 +27,10 @@ class DiscordEventController
         Message::addInfo(\sprintf('%s tâches de mise à jour créées', $results['updated']));
         Message::addInfo(\sprintf('%s tâches de suppression créées', $results['deleted']));
 
+        foreach ($results['errors'] ?? [] as $error) {
+            Message::addError($error);
+        }
+
         $this->guard->redirectToReferer();
     }
 }

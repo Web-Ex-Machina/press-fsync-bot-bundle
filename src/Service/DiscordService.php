@@ -54,6 +54,7 @@ class DiscordService
             'created' => 0,
             'updated' => 0,
             'deleted' => 0,
+            'errors' => [],
         ];
         $this->cache = [
             'events_servers' => [],
@@ -188,6 +189,17 @@ class DiscordService
                     );
 
                     $this->cache['events_servers'][$s] = $objDiscordEvents;
+
+                    // Discord answered with an error: the response is not a list of events
+                    if (null !== $this->client->getLastError()) {
+                        $this->arrResults['errors'][] = \sprintf(
+                            'Impossible de lister les événements du serveur %s : %s',
+                            $s,
+                            $this->client->getLastError()
+                        );
+                        $objDiscordEvents = null;
+                        $this->cache['events_servers'][$s] = null;
+                    }
                 } else {
                     $objDiscordEvents = $this->cache['events_servers'][$s];
                 }
